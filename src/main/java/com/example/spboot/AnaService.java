@@ -20,4 +20,8 @@ public class AnaService {
     public ArrayList<String> returnList() {
         return repo.returnList();
     }
+
+    public void addList(String name) {
+        repo.addList(name);
+    }
 }

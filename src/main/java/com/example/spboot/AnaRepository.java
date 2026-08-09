@@ -16,4 +16,8 @@ public class AnaRepository {
     public ArrayList<String> returnList() {
         return list;
     }
+
+    public void addList(String name) {
+        list.add(name);
+    }
 }
