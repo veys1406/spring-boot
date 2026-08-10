@@ -4,17 +4,49 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-@EnableWebSecurity
-@Configuration
-public class SecurityConfig {
+    @EnableWebSecurity
+    @Configuration
+    public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http.csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
-            .authorizeHttpRequests(auth->auth.anyRequest().permitAll());
-        return http.build();
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+            http.csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
+                .authorizeHttpRequests(auth->auth.anyRequest().authenticated())
+                    .httpBasic(httpBasic->{}); //varsayilan
+            return http.build();
+        }
+
+        /*asagidaki 2 method httpBasic calistigindaki filterin kullanacagi methodlar.
+        kullaniciadi ve sifreyi ayirmayi arkaplanda BasicAuthenticationFilter yapiyor sonra
+        AuthenticationManager o da AuthenticationProvider a veriyor kullanici bilgileri geliyo
+        sifreler eslesiyo mu (matches()) bakiliyo tum bunlar SPRING SECURITYNIN IC MEKANIZMASI
+        ben sadece bu mekanizmanin kullanacagi beanleri spring'e sagliyorum*/
+        @Bean
+        public PasswordEncoder passwordEncoder(){
+            return new BCryptPasswordEncoder(); // spring'in kendi hash implementasyonu
+        }
+
+        @Bean
+        public UserDetailsService userDetailsService(PasswordEncoder encoder){
+            UserDetails veysel = User.builder()
+                    .username("veysel")
+                    .password(encoder.encode("veysel123"))
+                    .roles("USER")
+                    .build();
+            UserDetails admin = User.builder()
+                    .username("admin")
+                    .password(encoder.encode("admin123"))
+                    .roles("ADMIN")
+                    .build();
+
+            return new InMemoryUserDetailsManager(veysel, admin);
+        }
     }
-
-}
