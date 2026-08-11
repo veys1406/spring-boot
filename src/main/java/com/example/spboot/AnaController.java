@@ -1,5 +1,6 @@
 package com.example.spboot;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -30,6 +31,12 @@ public class AnaController {
     @PostMapping("/isimler")
     public void addList(@RequestBody String name) {
         service.addList(name);
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminOnly(){
+        return "Admin only";
     }
 
 }
