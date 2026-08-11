@@ -1,9 +1,7 @@
 package com.example.spboot;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,5 +21,10 @@ public class GradeController {
     @GetMapping("/mygrades")
     public List<Grade> getGrades(@AuthenticationPrincipal String username){
         return gradeService.getMyGrades(username);
+    }
+
+    @PostMapping("/grades")
+    public void saveGrade(@RequestBody GradeRequest gradeRequest, @AuthenticationPrincipal String username){
+        gradeService.createGrade(gradeRequest.getIcerik(),username);
     }
 }

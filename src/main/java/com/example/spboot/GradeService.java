@@ -24,4 +24,11 @@ public class GradeService {
         return grade;
     }
 
+    public Grade createGrade(String icerik, String ownerUsername){
+        Grade grade = new Grade();
+        grade.setIcerik(icerik);
+        grade.setOwnerUsername(ownerUsername);
+        return repo.save(grade);// JPA kendisi hallediyor ekliyor database e
+    }
+
 }
