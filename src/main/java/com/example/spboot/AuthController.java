@@ -20,12 +20,12 @@ public class AuthController {
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest request){
 
-        Authentication authed = authenticationManager.authenticate(
+        Authentication authed = authenticationManager.authenticate(// kullanicinin girdiklerini springe teslim eder
                 new UsernamePasswordAuthenticationToken(request.getUsername(),
                 request.getPassword())
         );
 
-        return jwtService.generateToken(
+        return jwtService.generateToken(// token uretir kullanici veriyleriyle
                 authed.getName(),
                 authed.getAuthorities().iterator().next().getAuthority()
         );

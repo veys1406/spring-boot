@@ -41,8 +41,19 @@ public class JwtService {
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);//sure ve imza tutuyorsa jwt tokenini doner.
-
             return jws.getPayload().getSubject();// tokenin payload kismindaki username kismi
+        }else{
+            return null;
+        }
+    }
+
+    public String extractRole(String token){
+        if(isTokenValid(token)){
+            Jws<Claims> jws = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token);
+            return jws.getPayload().get("role",String.class);// kendi olusturdugum claime erismek icin
         }else{
             return null;
         }
