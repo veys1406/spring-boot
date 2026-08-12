@@ -3,7 +3,6 @@ package com.example.spboot;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,9 +24,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthFilter) throws Exception{
         http.csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
-            .authorizeHttpRequests(auth->auth.requestMatchers("/login").permitAll()
+                .authorizeHttpRequests(auth->auth.requestMatchers("/login").permitAll()
                                                                            .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
         return http.build();
     }
 

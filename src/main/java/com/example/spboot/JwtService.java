@@ -59,4 +59,16 @@ public class JwtService {
         }
     }
 
+    public Date extractExp(String token){
+        if(isTokenValid(token)){
+            Jws<Claims> jws = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token);
+            return jws.getPayload().getExpiration();
+        }else{
+            return null;
+        }
+    }
+
 }
