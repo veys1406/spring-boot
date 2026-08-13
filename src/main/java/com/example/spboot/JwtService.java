@@ -17,10 +17,21 @@ public class JwtService {
          return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())// suanki zaman
-                .expiration(new Date(System.currentTimeMillis() + 1000*60*30))// suanki zaman + yarim saat
+                .expiration(new Date(System.currentTimeMillis() + 1000*60))// suanki zaman + 1dk
                  .claim("role",role)
+                 .claim("type","access")
                 .signWith(secretKey)// header ve payloade gore secret key ile imzaliyor
                 .compact();// tokeni olusturup string doner
+    }
+
+    public String generateRefreshToken(String username){// tokeni yaratmak icin
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())// suanki zaman
+                .expiration(new Date(System.currentTimeMillis() + 1000*60*60*24*7))//7 gun
+                .claim("type","refresh")
+                .signWith(secretKey)
+                .compact();
     }
 
     public boolean isTokenValid(String token){// girilen token ile imza ve sure eslesip eslesmedigine bakar
@@ -66,6 +77,18 @@ public class JwtService {
                     .build()
                     .parseSignedClaims(token);
             return jws.getPayload().getExpiration();
+        }else{
+            return null;
+        }
+    }
+
+    public String extractType(String token){
+        if(isTokenValid(token)){
+            Jws<Claims> jws = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token);
+            return jws.getPayload().get("type", String.class);
         }else{
             return null;
         }

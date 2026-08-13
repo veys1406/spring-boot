@@ -5,10 +5,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.AccessDeniedException;
 import java.time.Duration;
 import java.util.Date;
 
@@ -17,25 +20,35 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RedisTemplate<Object, Object> redisTemplate;
+    private final UserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, RedisTemplate<Object, Object> redisTemplate) {
+    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, RedisTemplate<Object, Object> redisTemplate, UserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.redisTemplate = redisTemplate;
+        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request){
+    public LoginResponse login(@RequestBody LoginRequest request){
 
         Authentication authed = authenticationManager.authenticate(// kullanicinin girdiklerini springe teslim eder
                 new UsernamePasswordAuthenticationToken(request.getUsername(),
                 request.getPassword())
         );
 
-        return jwtService.generateToken(// token uretir kullanici veriyleriyle
+        String accessToken = jwtService.generateToken(// token uretir kullanici veriyleriyle(access)
                 authed.getName(),
                 authed.getAuthorities().iterator().next().getAuthority()
         );
+
+        String refreshToken = jwtService.generateRefreshToken(// token uretir kullanici veriyleriyle(refresh)
+                authed.getName()
+        );
+
+        redisTemplate.opsForValue().set( refreshToken, authed.getName(), Duration.ofDays(7));
+
+        return new LoginResponse(accessToken,refreshToken);
     }
 
     @PostMapping("/logout")
@@ -45,6 +58,22 @@ public class AuthController {
         Date exp = jwtService.extractExp(token);
         long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
         redisTemplate.opsForValue().set(token,"blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
+    }
+
+    @PostMapping("/refresh")
+    public String refresh(@RequestBody RefreshRequest request) throws AccessDeniedException {
+        String token = request.getToken();
+        if(     jwtService.isTokenValid(token) &&
+                jwtService.extractType(token).equals("refresh") &&
+                redisTemplate.hasKey(token)){
+
+            String username = jwtService.extractUsername(token);
+            String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
+            // userDetailsService den kullanicinin rol bilgilerini cekiyor
+            return jwtService.generateToken(username,role);
+        }else{
+            throw new AccessDeniedException("Gecersiz RefreshToken");
+        }
     }
 
 }
