@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,12 +51,16 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletRequest request){
+    public void logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
         String header = request.getHeader("Authorization");
         String token = header.substring(7); // Bearer i attik
         Date exp = jwtService.extractExp(token);
         long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
         redisTemplate.opsForValue().set(token,"blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
+
+        if(body!=null && body.getToken() != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
+            redisTemplate.delete(body.getToken());
+        }
     }
 
     @PostMapping("/refresh")
