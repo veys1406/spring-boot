@@ -73,7 +73,7 @@ public class AuthController {
             String username = jwtService.extractUsername(token);
             String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
             // userDetailsService den kullanicinin rol bilgilerini cekiyor
-            return jwtService.generateToken(username,role);
+            return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
         }else{
             throw new AccessDeniedException("Gecersiz RefreshToken");
         }
