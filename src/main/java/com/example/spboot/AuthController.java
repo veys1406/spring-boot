@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,12 +21,22 @@ public class AuthController {
     private final JwtService jwtService;
     private final RedisTemplate<Object, Object> redisTemplate;
     private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final AppUserRepository userRepository;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, RedisTemplate<Object, Object> redisTemplate, UserDetailsService userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtService jwtService,
+                          RedisTemplate<Object, Object> redisTemplate,
+                          UserDetailsService userDetailsService,
+                          PasswordEncoder passwordEncoder,
+                          AppUserRepository userRepository) {
+
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.redisTemplate = redisTemplate;
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -76,6 +87,19 @@ public class AuthController {
             return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
         }else{
             throw new AccessDeniedException("Gecersiz RefreshToken");
+        }
+    }
+
+    @PostMapping("/register")
+    public void register(@RequestBody RegisterRequest registerRequest) throws AccessDeniedException {
+        if(!userRepository.findByUsername(registerRequest.getUsername()).isPresent()){// isPresent ici dolu mu bos mu diye bakar
+            AppUser appUser = new AppUser();
+            appUser.setUsername(registerRequest.getUsername());
+            appUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));// sifre encode edilerek saklanmali
+            appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
+            userRepository.save(appUser);
+        }else{
+            throw new AccessDeniedException("Bu kullanici zaten kayitli");
         }
     }
 

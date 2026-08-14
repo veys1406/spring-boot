@@ -20,7 +20,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthFilter) throws Exception{
         http.csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
-                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh").permitAll()
+                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register").permitAll()
                                                                            .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
