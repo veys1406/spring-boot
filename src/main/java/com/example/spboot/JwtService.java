@@ -17,7 +17,7 @@ public class JwtService {
          return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())// suanki zaman
-                .expiration(new Date(System.currentTimeMillis() + 1000*60))// suanki zaman + 1dk
+                .expiration(new Date(System.currentTimeMillis() + 1000*60*30))// suanki zaman + 30dk
                  .claim("role",role)
                  .claim("type","access")
                 .signWith(secretKey)// header ve payloade gore secret key ile imzaliyor
