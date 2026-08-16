@@ -2,6 +2,7 @@ package com.example.spboot;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,23 +34,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String header = request.getHeader("Authorization"); //Authorization headerini al
+        Cookie[] cookies = request.getCookies();
+        String token = null;
 
-        if(header!=null && header.startsWith("Bearer ")){
-            String token = header.substring(7);// Bearer i almasin diye. suan sadece JWT token
-            if(jwtService.isTokenValid(token)){
-                Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
-                if(isBlacklisted == null || !isBlacklisted){
-                    UsernamePasswordAuthenticationToken authedToken = new UsernamePasswordAuthenticationToken(
-                            jwtService.extractUsername(token),
-                            null,
-                            List.of(new SimpleGrantedAuthority(jwtService.extractRole(token)))// springin kabul ettigi turden rol
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authedToken);
-                    //securityContext de kullanicinin adi ve rolunun bilgisi var sifreyi tutmuyoruz cunku zaten token dogrulandi
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("accessToken")) {
+                    token = c.getValue();
                 }
             }
         }
+
+        if(jwtService.isTokenValid(token)){
+            Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
+            if(isBlacklisted == null || !isBlacklisted){
+                UsernamePasswordAuthenticationToken authedToken = new UsernamePasswordAuthenticationToken(
+                        jwtService.extractUsername(token),
+                        null,
+                        List.of(new SimpleGrantedAuthority(jwtService.extractRole(token)))// springin kabul ettigi turden rol
+                );
+                SecurityContextHolder.getContext().setAuthentication(authedToken);
+                //securityContext de kullanicinin adi ve rolunun bilgisi var sifreyi tutmuyoruz cunku zaten token dogrulandi
+            }
+        }
+
 
         filterChain.doFilter(request,response);// bu filterin isi bitti istegi sonraki filtera devrediyor
 

@@ -1,7 +1,11 @@
 package com.example.spboot;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request){
+    public void login(@RequestBody LoginRequest request, HttpServletResponse response){
 
         Authentication authed = authenticationManager.authenticate(// kullanicinin girdiklerini springe teslim eder
                 new UsernamePasswordAuthenticationToken(request.getUsername(),
@@ -58,16 +62,35 @@ public class AuthController {
 
         redisTemplate.opsForValue().set( refreshToken, authed.getName(), Duration.ofDays(7));
 
-        return new LoginResponse(accessToken,refreshToken);
+        ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(30))
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     @PostMapping("/logout")
     public void logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
-        String header = request.getHeader("Authorization");
-        String token = header.substring(7); // Bearer i attik
-        Date exp = jwtService.extractExp(token);
-        long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
-        redisTemplate.opsForValue().set(token,"blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
+
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("accessToken")) {
+                    token = c.getValue();// tokeni cookieden aliyoruz headerdan degil
+                }
+            }
+        }
+        //sadece tokeni nerden aldigimiz degisti gerisi ayni
+
+        if(token != null){
+            Date exp = jwtService.extractExp(token);
+            long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
+            redisTemplate.opsForValue().set(token, "blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
+        }
 
         if(body!=null && body.getToken() != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
             redisTemplate.delete(body.getToken());
