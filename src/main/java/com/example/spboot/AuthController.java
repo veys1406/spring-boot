@@ -110,12 +110,12 @@ public class AuthController {
             // userDetailsService den kullanicinin rol bilgilerini cekiyor
             return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
         }else{
-            throw new AccessDeniedException("Gecersiz RefreshToken");
+            throw new InvalidTokenException("Invalid Refresh Token");
         }
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody @Validated RegisterRequest registerRequest) throws AccessDeniedException {
+    public void register(@RequestBody @Validated RegisterRequest registerRequest) {
         if(!userRepository.findByUsername(registerRequest.getUsername()).isPresent()){// isPresent ici dolu mu bos mu diye bakar
             AppUser appUser = new AppUser();
             appUser.setUsername(registerRequest.getUsername());
@@ -123,7 +123,7 @@ public class AuthController {
             appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
             userRepository.save(appUser);
         }else{
-            throw new AccessDeniedException("Bu kullanici zaten kayitli");
+            throw new UserAlreadyExistsException("This user is already exist");
         }
     }
 

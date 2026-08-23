@@ -16,10 +16,10 @@ public class GradeService {
         return repo.findByOwnerUsername(username);
     }
 
-    public Grade getGradeById(Long id, String username) throws AccessDeniedException {
+    public Grade getGradeById(Long id, String username) {
         Grade grade = repo.findById(id).orElseThrow();// Optional<Grade> donerse exception firlatsin
         if(!grade.getOwnerUsername().equals(username)){// IDOR
-            throw new AccessDeniedException("Bu Grade sana ait degil!");// CUSTOM EXCEPTION
+            throw new ForbiddenException("This grade isn't yours");// CUSTOM EXCEPTION
         }
         return grade;
     }
