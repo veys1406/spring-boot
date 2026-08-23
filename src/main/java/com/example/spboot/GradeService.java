@@ -19,16 +19,16 @@ public class GradeService {
     public Grade getGradeById(Long id, String username) throws AccessDeniedException {
         Grade grade = repo.findById(id).orElseThrow();// Optional<Grade> donerse exception firlatsin
         if(!grade.getOwnerUsername().equals(username)){// IDOR
-            throw new AccessDeniedException("Bu Grade sana ait degil!");
+            throw new AccessDeniedException("Bu Grade sana ait degil!");// CUSTOM EXCEPTION
         }
         return grade;
     }
 
-    public Grade createGrade(String icerik, String ownerUsername){
+    public void createGrade(String icerik, String ownerUsername){
         Grade grade = new Grade();
         grade.setIcerik(icerik);
         grade.setOwnerUsername(ownerUsername);
-        return repo.save(grade);// JPA kendisi hallediyor ekliyor database e
+        repo.save(grade);
     }
 
 }

@@ -18,13 +18,13 @@ public class GradeController {
         return gradeService.getGradeById(id,username);
     }
 
-    @GetMapping("/mygrades")
+    @GetMapping("/mygrades")// ENTITYNIN KENDISI RESPONSEDA DONULMUYOR HEM PERF/ HEM GUVENLIK
     public List<Grade> getGrades(@AuthenticationPrincipal String username){
         return gradeService.getMyGrades(username);
     }
 
     @PostMapping("/grades")
-    public void saveGrade(@RequestBody GradeRequest gradeRequest, @AuthenticationPrincipal String username){
+    public void saveGrade(@RequestBody GradeRequest gradeRequest, @AuthenticationPrincipal String username){// FORM DATA
         gradeService.createGrade(gradeRequest.getIcerik(),username);
     }
 }

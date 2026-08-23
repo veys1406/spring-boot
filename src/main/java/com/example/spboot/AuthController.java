@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody LoginRequest request, HttpServletResponse response){
+    public void login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
 
         Authentication authed = authenticationManager.authenticate(// kullanicinin girdiklerini springe teslim eder
                 new UsernamePasswordAuthenticationToken(request.getUsername(),
@@ -114,7 +115,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody RegisterRequest registerRequest) throws AccessDeniedException {
+    public void register(@RequestBody @Validated RegisterRequest registerRequest) throws AccessDeniedException {
         if(!userRepository.findByUsername(registerRequest.getUsername()).isPresent()){// isPresent ici dolu mu bos mu diye bakar
             AppUser appUser = new AppUser();
             appUser.setUsername(registerRequest.getUsername());
