@@ -1,5 +1,6 @@
 package com.example.spboot;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -86,9 +87,9 @@ public class AuthController {
             }
         }
         //sadece tokeni nerden aldigimiz degisti gerisi ayni
-
         if(token != null){
-            Date exp = jwtService.extractExp(token);
+            Claims claim = jwtService.parseClaims(token);
+            Date exp = jwtService.extractExp(claim);
             long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
             redisTemplate.opsForValue().set(token, "blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
         }
@@ -99,19 +100,21 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public String refresh(@RequestBody RefreshRequest request) throws AccessDeniedException {
+    public String refresh(@RequestBody RefreshRequest request){
         String token = request.getToken();
-        if(     jwtService.isTokenValid(token) &&
-                jwtService.extractType(token).equals("refresh") &&
-                redisTemplate.hasKey(token)){
+        if  ( jwtService.isTokenValid(token) ){
 
-            String username = jwtService.extractUsername(token);
-            String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
-            // userDetailsService den kullanicinin rol bilgilerini cekiyor
-            return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
-        }else{
-            throw new InvalidTokenException("Invalid Refresh Token");
+            Claims claim = jwtService.parseClaims(token);
+            if(     jwtService.extractType(claim).equals("refresh") &&
+                    redisTemplate.hasKey(token)){
+
+                String username = jwtService.extractUsername(claim);
+                String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
+                // userDetailsService den kullanicinin rol bilgilerini cekiyor
+                return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
+            }
         }
+        throw new InvalidTokenException("Invalid Refresh Token");
     }
 
     @PostMapping("/register")

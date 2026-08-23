@@ -44,10 +44,11 @@ public class JwtService {
     }
 
     public Claims parseClaims(String token){// her extract methodunda ve isvalid de parselamak yerine hepsini bu methoda dayandiriyoruz
-        return (Claims) Jwts.parser()
+        return  Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
-                .parseSignedClaims(token);// hem sureyi hem de imzayi kontrol eder tutmazsa exception atar
+                .parseSignedClaims(token)
+                .getPayload();// hem sureyi hem de imzayi kontrol eder tutmazsa exception atar
     }
 
     public String extractUsername(Claims claims){
