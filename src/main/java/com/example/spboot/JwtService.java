@@ -36,62 +36,34 @@ public class JwtService {
 
     public boolean isTokenValid(String token){// girilen token ile imza ve sure eslesip eslesmedigine bakar
         try {
-            Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);// hem sureyi hem de imzayi kontrol eder tutmazsa exception atar
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public String extractUsername(String token){
-        if(isTokenValid(token)){
-            Jws<Claims> jws = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);//sure ve imza tutuyorsa jwt tokenini doner.
-            return jws.getPayload().getSubject();// tokenin payload kismindaki username kismi
-        }else{
-            return null;
-        }
+    public Claims parseClaims(String token){// her extract methodunda ve isvalid de parselamak yerine hepsini bu methoda dayandiriyoruz
+        return (Claims) Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);// hem sureyi hem de imzayi kontrol eder tutmazsa exception atar
     }
 
-    public String extractRole(String token){
-        if(isTokenValid(token)){
-            Jws<Claims> jws = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return jws.getPayload().get("role",String.class);// kendi olusturdugum claime erismek icin
-        }else{
-            return null;
-        }
+    public String extractUsername(Claims claims){
+        return claims.getSubject();
     }
 
-    public Date extractExp(String token){
-        if(isTokenValid(token)){
-            Jws<Claims> jws = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return jws.getPayload().getExpiration();
-        }else{
-            return null;
-        }
+    public String extractRole(Claims claims){
+        return claims.get("role",String.class);
     }
 
-    public String extractType(String token){
-        if(isTokenValid(token)){
-            Jws<Claims> jws = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return jws.getPayload().get("type", String.class);
-        }else{
-            return null;
-        }
+    public Date extractExp(Claims claims){
+        return claims.getExpiration();
+    }
+
+    public String extractType(Claims claims){
+        return claims.get("type", String.class);
     }
 
 }
