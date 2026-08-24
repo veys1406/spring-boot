@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -11,7 +13,15 @@ import java.util.Date;
 
 @Component
 public class JwtService {
-    private final SecretKey secretKey = Keys.hmacShaKeyFor("supersecretkeysupersecretkeysupersecretkey".getBytes());
+    @Value("${jwt.secret}")//adim2 NEDEN CONSTRUCTOR INJECTION TERCIH EDILIYOR?
+    private String jwtSecret;
+
+    private SecretKey secretKey;// field initilizerda hesaplanmiyor adim1
+
+    @PostConstruct// adim3
+    public void useKey(){
+        secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
 
     public String generateToken(String username, String role){// tokeni yaratmak icin
          return Jwts.builder()
