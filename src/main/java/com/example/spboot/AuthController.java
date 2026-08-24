@@ -111,6 +111,12 @@ public class AuthController {
                 String username = jwtService.extractUsername(claim);
                 String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
                 // userDetailsService den kullanicinin rol bilgilerini cekiyor
+
+                String storedUsername = (String) redisTemplate.opsForValue().get(token);
+                if(!username.equals(storedUsername)){
+                    throw new InvalidTokenException("Invalid Refresh Token");
+                }
+
                 return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
             }
         }
