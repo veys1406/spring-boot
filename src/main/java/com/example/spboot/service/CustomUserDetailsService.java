@@ -1,5 +1,7 @@
-package com.example.spboot;
+package com.example.spboot.service;
 
+import com.example.spboot.entity.AppUser;
+import com.example.spboot.repository.AppUserRepository;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,4 +1,4 @@
-package com.example.spboot;
+package com.example.spboot.entity;
 
 
 import jakarta.persistence.Entity;

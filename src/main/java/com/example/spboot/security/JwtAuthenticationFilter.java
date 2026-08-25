@@ -1,5 +1,6 @@
-package com.example.spboot;
+package com.example.spboot.security;
 
+import com.example.spboot.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

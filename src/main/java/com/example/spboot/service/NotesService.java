@@ -1,5 +1,8 @@
-package com.example.spboot;
+package com.example.spboot.service;
 
+import com.example.spboot.entity.Notes;
+import com.example.spboot.dto.NotesResponse;
+import com.example.spboot.repository.NotesRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 

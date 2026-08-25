@@ -1,4 +1,4 @@
-package com.example.spboot;
+package com.example.spboot.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -1,5 +1,6 @@
-package com.example.spboot;
+package com.example.spboot.controller;
 
+import com.example.spboot.service.AnaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,5 +1,6 @@
-package com.example.spboot;
+package com.example.spboot.repository;
 
+import com.example.spboot.entity.AppUser;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

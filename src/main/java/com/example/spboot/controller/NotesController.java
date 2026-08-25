@@ -1,5 +1,8 @@
-package com.example.spboot;
+package com.example.spboot.controller;
 
+import com.example.spboot.dto.NotesRequest;
+import com.example.spboot.dto.NotesResponse;
+import com.example.spboot.service.NotesService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

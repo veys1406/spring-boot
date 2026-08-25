@@ -1,4 +1,4 @@
-package com.example.spboot;
+package com.example.spboot.dto;
 
 public class LoginResponse {// loginde 2 farkli tokeni donmek icin
     private String accessToken;

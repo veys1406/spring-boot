@@ -1,8 +1,10 @@
-package com.example.spboot;
+package com.example.spboot.service;
 
+import com.example.spboot.entity.AppUser;
+import com.example.spboot.exception.InvalidTokenException;
+import com.example.spboot.exception.UserAlreadyExistsException;
+import com.example.spboot.repository.AppUserRepository;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Duration;
 import java.util.Date;

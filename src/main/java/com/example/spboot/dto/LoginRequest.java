@@ -1,12 +1,11 @@
-package com.example.spboot;
+package com.example.spboot.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
-public class RegisterRequest {
+public class LoginRequest {
     @NotBlank
     private String username;
-    @NotBlank @Size(min = 6, max = 12)
+    @NotBlank
     private String password;
 
     public String getUsername() {

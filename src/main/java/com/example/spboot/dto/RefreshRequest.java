@@ -1,4 +1,4 @@
-package com.example.spboot;
+package com.example.spboot.dto;
 
 public class RefreshRequest{
     private String refreshToken;

@@ -1,4 +1,4 @@
-package com.example.spboot;
+package com.example.spboot.repository;
 
 import org.springframework.stereotype.Repository;
 

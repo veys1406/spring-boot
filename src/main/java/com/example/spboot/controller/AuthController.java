@@ -1,10 +1,12 @@
-package com.example.spboot;
+package com.example.spboot.controller;
 
-import io.jsonwebtoken.Claims;
+import com.example.spboot.service.AuthService;
+import com.example.spboot.dto.LoginRequest;
+import com.example.spboot.dto.RefreshRequest;
+import com.example.spboot.dto.RegisterRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.validation.annotation.Validated;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.Date;
 
 @RestController
 public class AuthController {
