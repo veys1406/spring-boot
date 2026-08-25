@@ -2,6 +2,7 @@ package com.example.spboot;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,8 +24,17 @@ public class NotesController {
         return notesService.getMyNotes(username);
     }
 
-    @PostMapping("/notes")
-    public void saveNote(@RequestBody NotesRequest noteRequest, @AuthenticationPrincipal String username){
-        notesService.createNote(noteRequest.getIcerik(),username);
+    @PostMapping("/notes")// Content typei application/json
+    public void saveNote(@RequestBody NotesRequest noteRequest,// JSON dan geliyor
+                         @RequestParam String imza, // URLden geliyor
+                         @AuthenticationPrincipal String username){
+        notesService.createNote(noteRequest.getIcerik(),imza,username);
+    }
+
+    @PostMapping("/notes/upload")// Content typei multipart/form-data
+    public void saveNoteWithImage(@RequestParam String imza,
+                                  @RequestParam MultipartFile image,
+                                  @AuthenticationPrincipal String username){
+        //image kullanmak icin getBytes()
     }
 }

@@ -41,7 +41,7 @@ public class NotesService {
         return new NotesResponse(note.getIcerik());
     }
 
-    public Notes createNote(String icerik, String ownerUsername){
+    public Notes createNote(String icerik, String imza, String ownerUsername){
         Notes note = new Notes();
         note.setIcerik(icerik);
         note.setOwnerUsername(ownerUsername);
