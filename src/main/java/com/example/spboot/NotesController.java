@@ -15,7 +15,7 @@ public class NotesController {
     }
 
     @GetMapping("/notes/{id}")
-    public NotesResponse getNote(@PathVariable String id, @AuthenticationPrincipal String username){
+    public NotesResponse getNote(@PathVariable Long id, @AuthenticationPrincipal String username){
         return notesService.getNoteById(id,username);
     }
 
@@ -36,5 +36,10 @@ public class NotesController {
                                   @RequestParam MultipartFile image,
                                   @AuthenticationPrincipal String username){
         //image kullanmak icin getBytes()
+    }
+
+    @GetMapping("/mynotes/search")// get methodlarda requestParam kullaniliyomus?
+    public List<NotesResponse> searchNotes(@RequestParam String keyword, @AuthenticationPrincipal String username ){
+        return notesService.searchMyNotes(username,keyword);
     }
 }

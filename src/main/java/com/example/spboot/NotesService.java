@@ -33,7 +33,7 @@ public class NotesService {
         return result;
     }
 
-    public NotesResponse getNoteById(String id, String username) throws AccessDeniedException {
+    public NotesResponse getNoteById(Long id, String username) throws AccessDeniedException {
         Notes note = repo.findById(id).orElseThrow();
         if(!note.getOwnerUsername().equals(username)){// IDOR
             throw new AccessDeniedException("Bu Note sana ait degil!");
@@ -46,6 +46,13 @@ public class NotesService {
         note.setIcerik(icerik);
         note.setOwnerUsername(ownerUsername);
         return repo.save(note);// JPA kendisi hallediyor ekliyor database e
+    }
+
+    public List<NotesResponse> searchMyNotes(String username, String keyword){
+        List<Notes> notesList = repo.searchByKeyword(username,keyword);
+        return notesList.stream()// STREAM API
+                .map(notes -> new NotesResponse(notes.getIcerik()))
+                .collect(Collectors.toList());
     }
 
 }
