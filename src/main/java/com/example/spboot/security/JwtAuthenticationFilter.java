@@ -1,6 +1,7 @@
 package com.example.spboot.security;
 
 import com.example.spboot.service.JwtService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -49,10 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if(jwtService.isTokenValid(token)){
             Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
             if(isBlacklisted == null || !isBlacklisted){
+                Claims claims = jwtService.parseClaims(token);
                 UsernamePasswordAuthenticationToken authedToken = new UsernamePasswordAuthenticationToken(
-                        jwtService.extractUsername(token),
+                        jwtService.extractUsername(claims),
                         null,
-                        List.of(new SimpleGrantedAuthority(jwtService.extractRole(token)))// springin kabul ettigi turden rol
+                        List.of(new SimpleGrantedAuthority(jwtService.extractRole(claims)))// springin kabul ettigi turden rol
                 );
                 SecurityContextHolder.getContext().setAuthentication(authedToken);
                 //securityContext de kullanicinin adi ve rolunun bilgisi var sifreyi tutmuyoruz cunku zaten token dogrulandi

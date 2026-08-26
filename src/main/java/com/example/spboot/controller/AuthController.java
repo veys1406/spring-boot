@@ -24,7 +24,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")// login() refresh token'ı frontend'e hiç iletmiyor
+    @PostMapping("/login")// login() refresh token'ı frontend'e hiç iletmiyor???
     public void login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
 
         String accessToken = authService.login(request.getUsername(),request.getPassword());
@@ -33,7 +33,7 @@ public class AuthController {
                 .httpOnly(true)
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))
-                .sameSite("Lax")
+                .sameSite("Strict")// cookie attribute degistirdik. CSRF TOKEN MANTIK ANLASILDI KODA DOKULMEDI
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
