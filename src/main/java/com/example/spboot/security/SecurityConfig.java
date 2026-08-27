@@ -28,13 +28,23 @@ public class SecurityConfig {
     private String corsOrigin;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthFilter) throws Exception{
-        http    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtAuthFilter,
+                                                   RateLimitFilter rateLimitFilter) throws Exception{
+
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
+
                 .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())//REQUEST MATCHERS
                 .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register").permitAll()
                                                                            .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
+                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
+
+
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
         return http.build();
     }
