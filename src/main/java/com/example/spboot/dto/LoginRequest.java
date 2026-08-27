@@ -6,7 +6,7 @@ public class LoginRequest {
     @NotBlank
     private String username;
     @NotBlank
-    private String password;
+    private String password;// Burda String olarak aldigimiz icin NoSQLi engelledik. Object olarak alsaydik NoSQL'e acik hale gelcekti
 
     public String getUsername() {
         return username;
