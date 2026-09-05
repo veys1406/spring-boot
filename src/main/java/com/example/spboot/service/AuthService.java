@@ -1,6 +1,7 @@
 package com.example.spboot.service;
 
 import com.example.spboot.dto.AppUserResponse;
+import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.InvalidTokenException;
 import com.example.spboot.exception.UserAlreadyExistsException;
@@ -93,7 +94,7 @@ public class AuthService {
         }
     }
 
-    public void logout(String accessToken, String refreshToken){
+    public MessageResponse logout(String accessToken, String refreshToken){
 
         if(accessToken != null){
             Claims claim = jwtService.parseClaims(accessToken);
@@ -105,6 +106,7 @@ public class AuthService {
         if(refreshToken != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
             redisTemplate.delete(refreshToken);
         } 
+        return new MessageResponse("Çıkış Başarılı");
     }
 
     public AppUserResponse me(Authentication authentication){

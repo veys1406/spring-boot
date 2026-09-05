@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Component
 public class JwtService {
-    @Value("${jwt.secret}")//adim2 NEDEN CONSTRUCTOR INJECTION TERCIH EDILIYOR?
+    @Value("${jwt.secret}")//adim2 
     private String jwtSecret;
 
     private SecretKey secretKey;// field initilizerda hesaplanmiyor adim1

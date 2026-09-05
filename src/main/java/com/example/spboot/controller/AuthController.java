@@ -3,6 +3,7 @@ package com.example.spboot.controller;
 import com.example.spboot.service.AuthService;
 import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginRequest;
+import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.dto.RefreshRequest;
 import com.example.spboot.dto.RegisterRequest;
 
@@ -30,7 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")// login() refresh token'ı frontend'e hiç iletmiyor???
-    public void login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
+    public MessageResponse login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
 
         String accessToken = authService.login(request.getUsername(),request.getPassword());
 
@@ -41,10 +42,12 @@ public class AuthController {
                 .sameSite("Strict")// cookie attribute degistirdik. CSRF TOKEN MANTIK ANLASILDI KODA DOKULMEDI
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return new MessageResponse("Giriş Başarılı");
     }
 
-    @PostMapping("/logout")// DTO RETURN ET
-    public void logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
+    @PostMapping("/logout")//
+    public MessageResponse logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
 
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
@@ -59,12 +62,20 @@ public class AuthController {
 
         String refreshToken = (body != null) ? body.getToken() : null;
 
-        authService.logout(accessToken,refreshToken);
+        return authService.logout(accessToken,refreshToken);
     }
 
     @PostMapping("/refresh")
-    public String refresh(@RequestBody RefreshRequest request){
-        return authService.refresh(request.getToken());
+    public MessageResponse refresh(@RequestBody RefreshRequest request, HttpServletResponse response){
+        String accessToken = authService.refresh(request.getToken());
+        ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(30))
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return new MessageResponse("AccessToken guncellendi.(Refresh)");
     }
 
     @PostMapping("/register")
