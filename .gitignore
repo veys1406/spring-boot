@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### OBSIDIAN ###
+
+# Vault repo'da tutulmuyor: ham ogrenme notlari, kisisel.
+docs/
+
+### CLAUDE ###
+
+CLAUDE.md
+
+### CLAUDE CODE ###
+
+# Kisisel Claude Code ayarlari (izinler, statusline) - CLAUDE.md gibi repoda tutulmuyor.
+.claude/

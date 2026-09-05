@@ -1,5 +1,6 @@
 package com.example.spboot.service;
 
+import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.InvalidTokenException;
 import com.example.spboot.exception.UserAlreadyExistsException;
@@ -25,12 +26,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AppUserRepository userRepository;
 
-    public AuthService(AuthenticationManager authenticationManager,
-                       JwtService jwtService,
-                       RedisTemplate<Object, Object> redisTemplate,
-                       UserDetailsService userDetailsService,
-                       PasswordEncoder passwordEncoder,
-                       AppUserRepository userRepository ) {
+    public AuthService( AuthenticationManager authenticationManager,
+                        JwtService jwtService,
+                        RedisTemplate<Object, Object> redisTemplate,
+                        UserDetailsService userDetailsService,
+                        PasswordEncoder passwordEncoder,
+                        AppUserRepository userRepository ) {
 
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -103,7 +104,11 @@ public class AuthService {
 
         if(refreshToken != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
             redisTemplate.delete(refreshToken);
-        }
+        } 
+    }
+
+    public AppUserResponse me(Authentication authentication){
+        return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
     }
 
 }

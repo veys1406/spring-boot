@@ -1,15 +1,20 @@
 package com.example.spboot.controller;
 
 import com.example.spboot.service.AuthService;
+import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginRequest;
 import com.example.spboot.dto.RefreshRequest;
 import com.example.spboot.dto.RegisterRequest;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,7 +43,7 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/logout")// DTO RETURN ET
     public void logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
 
         Cookie[] cookies = request.getCookies();
@@ -65,6 +70,11 @@ public class AuthController {
     @PostMapping("/register")
     public void register(@RequestBody @Validated RegisterRequest registerRequest) {
         authService.register( registerRequest.getUsername(), registerRequest.getPassword() );
+    }
+
+    @GetMapping("/me")
+    public AppUserResponse me(Authentication authentication){
+        return authService.me(authentication);
     }
 
 }

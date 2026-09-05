@@ -10,4 +10,6 @@ RUN ./mvnw package -DskipTests
 FROM eclipse-temurin:21-jre AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/spboot-0.0.1-SNAPSHOT.jar app.jar
+RUN useradd appuser
+USER appuser
 ENTRYPOINT ["java", "-jar", "app.jar"]
