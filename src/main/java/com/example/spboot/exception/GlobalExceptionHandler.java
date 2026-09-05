@@ -22,4 +22,8 @@ public class GlobalExceptionHandler {// mantikli olan yontem 400 tane exception
     public ResponseEntity<String> handleInvalidToken(InvalidTokenException exception){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exception.getMessage());// 401
     }
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> handleNotFound(NotFoundException exception){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());// 404
+    }
 }

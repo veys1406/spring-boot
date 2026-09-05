@@ -1,9 +1,11 @@
 package com.example.spboot.service;
 
 import com.example.spboot.entity.Notes;
+import com.example.spboot.exception.NotFoundException;
 import com.example.spboot.dto.NotesResponse;
 import com.example.spboot.repository.NotesRepository;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +30,7 @@ public class NotesService {
     }
 
     public NotesResponse getNoteById(String id, String username) throws AccessDeniedException {
-        Notes notes = repo.findById(id).orElseThrow();
+        Notes notes = repo.findById(id).orElseThrow(() -> new NotFoundException("Not bulunamadi!"));
         if(!notes.getOwnerUsername().equals(username)){// IDOR
             throw new AccessDeniedException("Bu Note sana ait degil!");
         }
