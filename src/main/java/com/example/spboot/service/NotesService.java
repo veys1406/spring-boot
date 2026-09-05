@@ -1,11 +1,11 @@
 package com.example.spboot.service;
 
 import com.example.spboot.entity.Notes;
-import com.example.spboot.exception.NotFoundException;
+import com.example.spboot.exception.CustomException;
 import com.example.spboot.dto.NotesResponse;
 import com.example.spboot.repository.NotesRepository;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,10 +29,10 @@ public class NotesService {
         return result;
     }
 
-    public NotesResponse getNoteById(String id, String username) throws AccessDeniedException {
-        Notes notes = repo.findById(id).orElseThrow(() -> new NotFoundException("Not bulunamadi!"));
+    public NotesResponse getNoteById(String id, String username) throws CustomException {
+        Notes notes = repo.findById(id).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND,"Not bulunamadi!"));
         if(!notes.getOwnerUsername().equals(username)){// IDOR
-            throw new AccessDeniedException("Bu Note sana ait degil!");
+            throw new CustomException(HttpStatus.FORBIDDEN,"Bu Not sana ait degil!");
         }
         return new NotesResponse(notes.getId(),notes.getIcerik(),notes.getImza(),notes.getImage());
     }

@@ -1,14 +1,18 @@
 package com.example.spboot.exception;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {// mantikli olan yontem 400 tane exception
+public class GlobalExceptionHandler {// mantikli olan yontem?? 400 tane exception???
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<String> handleNotFound(CustomException exception){
+        return ResponseEntity.status(exception.getStatus()).body(exception.getMessage());
+    }
+
+    /*@ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<String> handleUserExist(UserAlreadyExistsException exception){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());// 409
     }
@@ -25,5 +29,5 @@ public class GlobalExceptionHandler {// mantikli olan yontem 400 tane exception
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<String> handleNotFound(NotFoundException exception){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());// 404
-    }
+    }*/
 }

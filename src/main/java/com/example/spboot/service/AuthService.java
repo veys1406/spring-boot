@@ -4,11 +4,11 @@ import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
-import com.example.spboot.exception.InvalidTokenException;
-import com.example.spboot.exception.UserAlreadyExistsException;
+import com.example.spboot.exception.CustomException;
 import com.example.spboot.repository.AppUserRepository;
 import io.jsonwebtoken.Claims;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -74,13 +74,13 @@ public class AuthService {
 
                 String storedUsername = (String) redisTemplate.opsForValue().get(token);
                 if(!username.equals(storedUsername)){
-                    throw new InvalidTokenException("Invalid Refresh Token");
+                    throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token");
                 }
 
                 return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
             }
         }
-        throw new InvalidTokenException("Invalid Refresh Token");
+        throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token");
     }
 
     public void register(String username,String password) {
@@ -91,7 +91,7 @@ public class AuthService {
             appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
             userRepository.save(appUser);
         }else{
-            throw new UserAlreadyExistsException("This user is already exist");
+            throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!");
         }
     }
 
