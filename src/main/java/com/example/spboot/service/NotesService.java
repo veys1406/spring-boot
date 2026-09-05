@@ -6,7 +6,6 @@ import com.example.spboot.repository.NotesRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,35 +20,27 @@ public class NotesService {
     public List<NotesResponse> getMyNotes(String username){
         List<Notes> notesList = repo.findByOwnerUsername(username);
 
-        List<NotesResponse> result = new ArrayList<>();
-        /*
-        for(Notes n : notesList){
-            result.add(new NotesResponse(n.getIcerik()));
-        }
-        */
-        //STREAM API ustteki for-each dongusunun aynisini yapiyor
-        //onceden entitityi direkt donuyorduk simdi DTO olusturkduk onu donuyoz
-        result = notesList.stream()
-                .map(notes -> new NotesResponse(notes.getIcerik()))
+        List<NotesResponse> result =  notesList.stream()
+                .map(notes -> new NotesResponse(notes.getId(),notes.getIcerik(),notes.getImza(),notes.getImage()))
                 .collect(Collectors.toList());
 
         return result;
     }
 
     public NotesResponse getNoteById(String id, String username) throws AccessDeniedException {
-        Notes note = repo.findById(id).orElseThrow();
-        if(!note.getOwnerUsername().equals(username)){// IDOR
+        Notes notes = repo.findById(id).orElseThrow();
+        if(!notes.getOwnerUsername().equals(username)){// IDOR
             throw new AccessDeniedException("Bu Note sana ait degil!");
         }
-        return new NotesResponse(note.getIcerik());
+        return new NotesResponse(notes.getId(),notes.getIcerik(),notes.getImza(),notes.getImage());
     }
 
     public Notes createNote(String icerik, String imza, String ownerUsername){
-        Notes note = new Notes();
-        note.setIcerik(icerik);
-        note.setImza(imza);
-        note.setOwnerUsername(ownerUsername);
-        return repo.save(note);// JPA kendisi hallediyor ekliyor database e
+        Notes notes = new Notes();
+        notes.setIcerik(icerik);
+        notes.setImza(imza);
+        notes.setOwnerUsername(ownerUsername);
+        return repo.save(notes);// Mongo kendisi hallediyor ekliyor database e
     }
 
     public Notes createNoteWithImage(String icerik, String imza, byte[] image, String ownerUsername){
@@ -64,7 +55,7 @@ public class NotesService {
     public List<NotesResponse> searchMyNotes(String username, String keyword){
         List<Notes> notesList = repo.searchByKeyword(username,keyword);
         return notesList.stream()// STREAM API
-                .map(notes -> new NotesResponse(notes.getIcerik()))
+                .map(notes -> new NotesResponse(notes.getId(),notes.getIcerik(),notes.getImza(),notes.getImage()))
                 .collect(Collectors.toList());
     }
 
