@@ -3,6 +3,7 @@ package com.example.spboot.controller;
 import com.example.spboot.service.AuthService;
 import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginRequest;
+import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.dto.RefreshRequest;
 import com.example.spboot.dto.RegisterRequest;
@@ -33,15 +34,23 @@ public class AuthController {
     @PostMapping("/login")// login() refresh token'ı frontend'e hiç iletmiyor???
     public MessageResponse login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
 
-        String accessToken = authService.login(request.getUsername(),request.getPassword());
+        LoginResponse loginResponse = authService.login(request.getUsername(),request.getPassword());
 
-        ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", loginResponse.getAccessToken())
                 .httpOnly(true)
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))
                 .sameSite("Strict")// cookie attribute degistirdik. CSRF TOKEN MANTIK ANLASILDI KODA DOKULMEDI
                 .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", loginResponse.getRefreshToken())
+                .httpOnly(true)
+                .path("/refresh")// sadece refresh endpointine eklenir bu coookie otomatik
+                .maxAge(Duration.ofDays(7))
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return new MessageResponse("Giriş Başarılı");
     }
@@ -66,9 +75,20 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public MessageResponse refresh(@RequestBody RefreshRequest request, HttpServletResponse response){
-        String accessToken = authService.refresh(request.getToken());
-        ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+    public MessageResponse refresh(HttpServletRequest request, HttpServletResponse response){
+
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
+
+        if (cookies != null) {
+            for (Cookie c : cookies) {// OPTIMIZASYON SORUNU?
+                if (c.getName().equals("refreshToken")) {// tokeni cookieden aliyoruz headerdan degil
+                    refreshToken = c.getValue();
+                }
+            }
+        }
+        String accessToken_new = authService.refresh(refreshToken);
+        ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken_new)
                 .httpOnly(true)
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))

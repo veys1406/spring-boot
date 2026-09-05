@@ -1,6 +1,7 @@
 package com.example.spboot.service;
 
 import com.example.spboot.dto.AppUserResponse;
+import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.InvalidTokenException;
@@ -42,7 +43,7 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String login(String username, String password){
+    public LoginResponse login(String username, String password){
         Authentication authed = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username,password)
         );
@@ -57,7 +58,7 @@ public class AuthService {
         );
 
         redisTemplate.opsForValue().set( refreshToken, authed.getName(), Duration.ofDays(7));
-        return accessToken;
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public String refresh(String token){

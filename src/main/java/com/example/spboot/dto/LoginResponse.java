@@ -1,10 +1,10 @@
 package com.example.spboot.dto;
 
-public class LoginResponse_old {// loginde 2 farkli tokeni donmek icin
+public class LoginResponse {// loginde 2 farkli tokeni donmek icin SADECE SERVICEDEN CONTROLLERA DONMEK ICIN
     private String accessToken;
     private String refreshToken;
 
-    public LoginResponse_old(String accessToken, String refreshToken) {
+    public LoginResponse(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
