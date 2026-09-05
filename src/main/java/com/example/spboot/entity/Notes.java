@@ -1,24 +1,22 @@
 package com.example.spboot.entity;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-@Entity
+@Document(collection = "notes")
 public class Notes {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
     private String icerik;
+    private String imza;
     private String ownerUsername;
+    private byte[] image;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -37,4 +35,22 @@ public class Notes {
     public void setIcerik(String icerik) {
         this.icerik = icerik;
     }
+
+    public byte[] getImage() {
+        return image;
+    }
+    
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+    public String getImza() {
+        return imza;
+    }
+
+    public void setImza(String imza) {
+        this.imza = imza;
+    }
+
+    
 }

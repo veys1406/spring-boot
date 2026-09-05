@@ -36,7 +36,7 @@ public class NotesService {
         return result;
     }
 
-    public NotesResponse getNoteById(Long id, String username) throws AccessDeniedException {
+    public NotesResponse getNoteById(String id, String username) throws AccessDeniedException {
         Notes note = repo.findById(id).orElseThrow();
         if(!note.getOwnerUsername().equals(username)){// IDOR
             throw new AccessDeniedException("Bu Note sana ait degil!");
@@ -47,8 +47,18 @@ public class NotesService {
     public Notes createNote(String icerik, String imza, String ownerUsername){
         Notes note = new Notes();
         note.setIcerik(icerik);
+        note.setImza(imza);
         note.setOwnerUsername(ownerUsername);
         return repo.save(note);// JPA kendisi hallediyor ekliyor database e
+    }
+
+    public Notes createNoteWithImage(String icerik, String imza, byte[] image, String ownerUsername){
+        Notes note = new Notes();
+        note.setIcerik(icerik);
+        note.setImza(imza);
+        note.setImage(image);
+        note.setOwnerUsername(ownerUsername);
+        return repo.save(note);
     }
 
     public List<NotesResponse> searchMyNotes(String username, String keyword){
