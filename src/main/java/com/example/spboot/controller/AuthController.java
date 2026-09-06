@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -82,7 +83,7 @@ public class AuthController {
 
         if (cookies != null) {
             for (Cookie c : cookies) {// OPTIMIZASYON SORUNU?
-                if (c.getName().equals("refreshToken")) {// tokeni cookieden aliyoruz headerdan degil
+                if (c.getName().equals("refreshToken")) {
                     refreshToken = c.getValue();
                 }
             }
@@ -107,5 +108,10 @@ public class AuthController {
     public AppUserResponse me(Authentication authentication){
         return authService.me(authentication);
     }
+
+    @GetMapping("/csrf")
+    public void csrf(CsrfToken csrfToken){
+        // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
+    } 
 
 }

@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -29,17 +31,19 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationFilter jwtAuthFilter,
-                                                   RateLimitFilter rateLimitFilter) throws Exception{
+                                                JwtAuthenticationFilter jwtAuthFilter,
+                                                RateLimitFilter rateLimitFilter) throws Exception{
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .csrf(csrf->csrf.disable())// csrf ayari nesnesini ver disable methodu calistir
+                .csrf(csrf->csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/login", "/register"))
 
                 .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())//REQUEST MATCHERS
                 .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register").permitAll()
-                                                                           .anyRequest().authenticated())
+                                                                        .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
