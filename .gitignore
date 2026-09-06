@@ -1,3 +1,5 @@
+.env
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -46,3 +48,5 @@ CLAUDE.md
 
 # Kisisel Claude Code ayarlari (izinler, statusline) - CLAUDE.md gibi repoda tutulmuyor.
 .claude/
+
+
