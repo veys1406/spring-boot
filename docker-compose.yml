@@ -7,10 +7,17 @@ services:
         - JWT_SECRET=${JWT_SECRET}
         - SPRING_DATA_REDIS_HOST=redis
         - SPRING_MONGODB_URI=mongodb://mongo:27017/spboot
+        - SPRING_RABBITMQ_HOST=rabbitmq
+        - SPRING_RABBITMQ_PORT=5672
+        - SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+        - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+
       depends_on:
         mongo:
           condition: service_healthy
         redis:
+          condition: service_healthy
+        rabbitmq:
           condition: service_healthy
 
     mongo:
@@ -34,6 +41,24 @@ services:
         interval: 10s
         timeout: 5s
         retries: 5
+    
+    rabbitmq:
+      image: rabbitmq:4-management
+      ports:
+        - "15672:15672"
+        - "5672:5672"
+      environment:
+        - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      volumes:
+        - rabbit_data:/var/lib/rabbitmq
+      healthcheck:
+        test: ["CMD", "rabbitmq-diagnostics", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
 
 volumes:
-  mongo_data: 
+  mongo_data:
+  rabbit_data:

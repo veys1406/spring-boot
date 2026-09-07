@@ -7,6 +7,8 @@ import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
 import com.example.spboot.repository.AppUserRepository;
 import io.jsonwebtoken.Claims;
+
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,13 +29,15 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final AppUserRepository userRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     public AuthService( AuthenticationManager authenticationManager,
                         JwtService jwtService,
                         RedisTemplate<Object, Object> redisTemplate,
                         UserDetailsService userDetailsService,
                         PasswordEncoder passwordEncoder,
-                        AppUserRepository userRepository ) {
+                        AppUserRepository userRepository,
+                        RabbitTemplate rabbitTemplate) {
 
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -41,6 +45,7 @@ public class AuthService {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public LoginResponse login(String username, String password){
@@ -90,9 +95,13 @@ public class AuthService {
             appUser.setPassword(passwordEncoder.encode(password));// sifre encode edilerek saklanmali
             appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
             userRepository.save(appUser);
+            
+            rabbitTemplate.convertAndSend("user.registered","kullanici kaydoldu",appUser.getUsername()+" kayit oldu!");
+
         }else{
             throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!");
         }
+        
     }
 
     public MessageResponse logout(String accessToken, String refreshToken){
