@@ -100,8 +100,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody @Validated RegisterRequest registerRequest) {
-        authService.register( registerRequest.getUsername(), registerRequest.getPassword() );
+    public MessageResponse register(@RequestBody @Validated RegisterRequest registerRequest) {
+        return authService.register( registerRequest.getUsername(), registerRequest.getUserMail(), registerRequest.getPassword() );
     }
 
     @GetMapping("/me")

@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class AppUser {
     @Id
     private String id;
+    private String userMail;
     private String username;
     private String password;
     private String role;
@@ -43,4 +44,14 @@ public class AppUser {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public String getUserMail() {
+        return userMail;
+    }
+
+    public void setUserMail(String userMail) {
+        this.userMail = userMail;
+    }
+
+    
 }

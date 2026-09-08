@@ -2,6 +2,7 @@ package com.example.spboot.service;
 
 import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginResponse;
+import com.example.spboot.dto.MailUsername;
 import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
@@ -88,20 +89,21 @@ public class AuthService {
         throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token");
     }
 
-    public void register(String username,String password) {
+    public MessageResponse register(String username,String userMail, String password) {
         if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
             AppUser appUser = new AppUser();
             appUser.setUsername(username);
+            appUser.setUserMail(userMail);
             appUser.setPassword(passwordEncoder.encode(password));// sifre encode edilerek saklanmali
             appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
             userRepository.save(appUser);
             
-            rabbitTemplate.convertAndSend("user.registered","kullanici kaydoldu",appUser.getUsername()+" kayit oldu!");
+            rabbitTemplate.convertAndSend("user.registered","kullanici kaydoldu", new MailUsername(userMail, username));
 
         }else{
             throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!");
         }
-        
+        return new MessageResponse("Register Successfull!");
     }
 
     public MessageResponse logout(String accessToken, String refreshToken){
