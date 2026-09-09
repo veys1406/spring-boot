@@ -16,7 +16,7 @@ public class MailConsumer {
     }
 
     @RabbitListener(queues = "mail-queue")
-    public void print(MailUsername mailUsername){
+    public void print(MailUsername mailUsername){// exception atarsa nack atmazsa ack
 
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 
@@ -25,7 +25,7 @@ public class MailConsumer {
         simpleMailMessage.setSubject("Hosgeldin!");
         simpleMailMessage.setText("Aramiza hosgeldin " + mailUsername.getUsername() + ".");
         
-        javaMailSender.send(simpleMailMessage);
+        javaMailSender.send(simpleMailMessage);// exception firlatabilir
 
         System.out.println(mailUsername.getUserMail() +" "+ mailUsername.getUsername());
 

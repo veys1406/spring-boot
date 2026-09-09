@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
@@ -18,18 +19,36 @@ import com.example.spboot.dto.MailUsername;
 public class RabbitConfig {
 
     @Bean
-    public Queue queue(){
-        return new Queue("mail-queue");
+    public Queue mail_queue(){
+        HashMap<String, Object> arguments = new HashMap<>();
+        arguments.put("x-dead-letter-exchange", "message.rejected");
+        return new Queue("mail-queue",true,false,false,arguments);
     }
 
     @Bean
-    public DirectExchange exchange(){
+    public DirectExchange mail_exchange(){
         return new DirectExchange("user.registered");
     }
 
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange){
-        return BindingBuilder.bind(queue).to(exchange).with("kullanici kaydoldu");
+    public Binding binding(Queue mail_queue, DirectExchange mail_exchange){
+        return BindingBuilder.bind(mail_queue).to(mail_exchange).with("kullanici kaydoldu");
+    }
+    
+
+    @Bean
+    public Queue garbage_queue(){
+        return new Queue("garbage-queue");
+    }
+
+    @Bean
+    public FanoutExchange garbage_exchange(){
+        return new FanoutExchange("message.rejected");
+    }
+
+    @Bean
+    public Binding garbage_binding(Queue garbage_queue, FanoutExchange garbage_exchange){
+        return BindingBuilder.bind(garbage_queue).to(garbage_exchange);
     }
     
     @Bean// converteri degistiriyoruz simplemessage convertere yerine json a donusturen bunu kullaniyoruz
