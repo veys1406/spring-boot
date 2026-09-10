@@ -19,9 +19,9 @@ public class MailConsumer {
     @RabbitListener(queues = "mail-queue")
     public void print(MailUsername mailUsername){// exception atarsa nack atmazsa ack
 
-        /*if( (mailUsername.getUserMail()!=null) && !(mailUsername.getUserMail().contains("@"))){
+        if( (mailUsername.getUserMail()==null) || !(mailUsername.getUserMail().contains("@"))){
             throw new AmqpRejectAndDontRequeueException("Gecersiz mail!");
-        }*/
+        }
 
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 
