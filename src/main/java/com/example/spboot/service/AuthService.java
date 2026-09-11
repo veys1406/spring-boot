@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration; 
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -97,8 +98,11 @@ public class AuthService {
             appUser.setPassword(passwordEncoder.encode(password));// sifre encode edilerek saklanmali
             appUser.setRole("USER");// kullanici kendi rolunu belirleyemez
             userRepository.save(appUser);
-            
-            rabbitTemplate.convertAndSend("user.registered","kullanici kaydoldu", new MailUsername(userMail, username));
+            MailUsername mailUsername = new MailUsername(userMail, username);
+            rabbitTemplate.convertAndSend("user.registered","kullanici kaydoldu", mailUsername, m -> {
+                m.getMessageProperties().setMessageId(UUID.randomUUID().toString());
+                return m;
+            });
 
         }else{
             throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!");
