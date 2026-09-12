@@ -13,10 +13,14 @@ import org.springframework.stereotype.Component;
 
 import com.example.spboot.dto.MailUsername;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component 
 public class MailConsumer {
     private final JavaMailSender javaMailSender;
     private final RedisTemplate<Object, Object> redisTemplate;
+    private static final Logger log = LoggerFactory.getLogger(MailConsumer.class);
     
     public MailConsumer(JavaMailSender javaMailSender, RedisTemplate<Object, Object> redisTemplate) {
         this.javaMailSender = javaMailSender;
@@ -24,13 +28,17 @@ public class MailConsumer {
     }
 
     @RabbitListener(queues = "mail-queue")
-    public void print(MailUsername mailUsername, @Header(AmqpHeaders.MESSAGE_ID) String message_id){// exception atarsa nack atmazsa ack
-
-        if(redisTemplate.hasKey(message_id)){// nulla karsi korumuyor
-            System.out.println("Bu mesaj zaten gonderildi -> "+ message_id);
-            return;
+    public void print(MailUsername mailUsername, @Header(value = AmqpHeaders.MESSAGE_ID, required = false) String message_id){// exception atarsa nack atmazsa ack
+        boolean is_ID_null = message_id == null;
+        
+        if(is_ID_null){
+            log.warn("Message id bos! Mail gonderiliyor ama Redis kontrolu yapilmiyor!: {} ", mailUsername.getUsername()+ " " + mailUsername.getUserMail());
+        }else{
+            if(redisTemplate.hasKey(message_id)){// nulla karsi korumuyor
+                System.out.println("Bu mesaj zaten gonderildi -> "+ message_id);
+                return;
+            }
         }
-
 
         if( (mailUsername.getUserMail()==null) || !(mailUsername.getUserMail().contains("@"))){
             throw new AmqpRejectAndDontRequeueException("Gecersiz mail!");
@@ -45,9 +53,7 @@ public class MailConsumer {
         
         //at-least-once
         javaMailSender.send(simpleMailMessage);// exception firlatabilir
-        redisTemplate.opsForValue().set(message_id, "mailSent", Duration.ofDays(1));
-        
-        
+        if(!is_ID_null) redisTemplate.opsForValue().set(message_id, "mailSent", Duration.ofDays(1));
 
         System.out.println(message_id);
         try {
