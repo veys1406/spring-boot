@@ -35,7 +35,7 @@ public class MailConsumer {
             log.warn("Message id bos! Mail gonderiliyor ama Redis kontrolu yapilmiyor!: {} ", mailUsername.getUsername()+ " " + mailUsername.getUserMail());
         }else{
             if(redisTemplate.hasKey(message_id)){// nulla karsi korumuyor
-                System.out.println("Bu mesaj zaten gonderildi -> "+ message_id);
+                log.warn("Bu mesaj zaten gonderildi: {} ", message_id);
                 return;
             }
         }
@@ -53,16 +53,10 @@ public class MailConsumer {
         
         //at-least-once
         javaMailSender.send(simpleMailMessage);// exception firlatabilir
+
         if(!is_ID_null) redisTemplate.opsForValue().set(message_id, "mailSent", Duration.ofDays(1));
 
-        System.out.println(message_id);
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(mailUsername.getUserMail() +" "+ mailUsername.getUsername());
+        log.info("{} kullanicisina, {} id'li mesaj gonderildi",mailUsername.getUsername() , message_id);
 
     }
 

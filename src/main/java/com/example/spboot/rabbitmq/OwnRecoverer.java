@@ -15,6 +15,6 @@ public class OwnRecoverer implements MessageRecoverer {
     public void recover(Message message, Throwable throwable){
         log.error("Mail gonderilemedi, DLQ'ya gidiyor: {}",message,throwable);
         throw new AmqpRejectAndDontRequeueException(throwable);
-    }
+    } 
 
 }
