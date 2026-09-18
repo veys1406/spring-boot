@@ -41,13 +41,18 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                         .ignoringRequestMatchers("/login", "/register"))
 
-                .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())//REQUEST MATCHERS
-                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register").permitAll()
+                .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())
+                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register","/error").permitAll()
                                                                         .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
 
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"hata\":\"entry point calisti\"}");
+                }))
 
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
         return http.build();

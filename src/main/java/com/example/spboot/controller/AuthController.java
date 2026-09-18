@@ -32,7 +32,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")// login() refresh token'ı frontend'e hiç iletmiyor???
+    @PostMapping("/login")
     public MessageResponse login(@RequestBody @Validated LoginRequest request, HttpServletResponse response){
 
         LoginResponse loginResponse = authService.login(request.getUsername(),request.getPassword());
