@@ -69,7 +69,7 @@ public class AuthService {
     }
 
     public String refresh(String token){
-        if  ( jwtService.isTokenValid(token) ){
+        if  ( jwtService.tokenStatus(token) == JwtService.TokenStatus.VALID ){
 
             Claims claim = jwtService.parseClaims(token);
             if(     jwtService.extractType(claim).equals("refresh") &&

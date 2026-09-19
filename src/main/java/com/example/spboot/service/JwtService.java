@@ -1,9 +1,13 @@
 package com.example.spboot.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +16,10 @@ import java.util.Date;
 
 @Component
 public class JwtService {
+    public enum TokenStatus { VALID, EXPIRED, INVALID }
+
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+
     @Value("${jwt.secret}")//adim2 
     private String jwtSecret;
 
@@ -23,12 +31,12 @@ public class JwtService {
     }
 
     public String generateToken(String username, String role){// tokeni yaratmak icin
-         return Jwts.builder()
+        return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())// suanki zaman
                 .expiration(new Date(System.currentTimeMillis() + 1000*60*30))// suanki zaman + 30dk
-                 .claim("role",role)
-                 .claim("type","access")
+                .claim("role",role)
+                .claim("type","access")
                 .signWith(secretKey)// header ve payloade gore secret key ile imzaliyor
                 .compact();// tokeni olusturup string doner
     }
@@ -43,12 +51,15 @@ public class JwtService {
                 .compact();
     }
 
-    public boolean isTokenValid(String token){// girilen token ile imza ve sure eslesip eslesmedigine bakar
+    public TokenStatus tokenStatus(String token){// girilen token ile imza ve sure eslesip eslesmedigine bakar
         try {
             parseClaims(token);
-            return true;
-        } catch (Exception e) {
-            return false;
+            return TokenStatus.VALID;
+        }catch (ExpiredJwtException e) {
+            log.debug("token suresi dolmus -> {}", e.getClaims().getSubject());// exceptionun kendisi tasiyor kullanici bilgilerini
+            return TokenStatus.EXPIRED;
+        }catch (Exception e) {
+            return TokenStatus.INVALID;
         }
     }
 

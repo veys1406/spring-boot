@@ -1,6 +1,8 @@
 package com.example.spboot.security;
 
 import com.example.spboot.service.JwtService;
+import com.example.spboot.service.JwtService.TokenStatus;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -49,7 +51,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if(jwtService.isTokenValid(token)){
+        TokenStatus tokenStatus = jwtService.tokenStatus(token);
+
+        if (tokenStatus == JwtService.TokenStatus.EXPIRED) {
+            request.setAttribute("authError", "TOKEN_EXPIRED");
+        }
+        else if(tokenStatus == JwtService.TokenStatus.VALID ){
             Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
             if(isBlacklisted == null || !isBlacklisted){
                 Claims claims = jwtService.parseClaims(token);

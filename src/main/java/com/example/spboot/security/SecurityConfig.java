@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.example.spboot.service.JwtService;
+
 import java.util.List;
 
 @EnableMethodSecurity // PreAuthorize in calismasi icin
@@ -51,7 +53,13 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(401);
                     response.setContentType("application/json");
-                    response.getWriter().write("{\"hata\":\"entry point calisti\"}");
+                    Object authErrorCode = request.getAttribute("authError");
+                    if(authErrorCode == null){
+                        response.getWriter().write("{\"code\":\"UNAUTHENTICATED\"}");
+                    }else{
+                        response.getWriter().write("{\"code\":\""+ authErrorCode.toString() +"\"}");
+                    }
+                    
                 }))
 
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
