@@ -9,6 +9,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+import com.example.spboot.exception.ErrorCode;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tools.jackson.databind.ObjectMapper;
@@ -27,18 +29,19 @@ public class JwtAuthenticationEntryPoint implements  AuthenticationEntryPoint {
                         HttpServletResponse response,
                         AuthenticationException authException) throws IOException {
         Object authError = request.getAttribute("authError");
-        String code;
+        ErrorCode code;
         if (authError != null) {
-            code = authError.toString();
+            code = (ErrorCode) authError;
         }else if (authException instanceof BadCredentialsException){
-            code = "INVALID_CREDENTIALS";
+            code = ErrorCode.INVALID_CREDENTIALS;
         }else {
-            code = "UNAUTHENTICATED";
+            code = ErrorCode.UNAUTHENTICATED;
         }
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Kimlik dogrulanamadi");
         problem.setProperty("code", code);
         response.setStatus(401);
         response.setContentType("application/problem+json");
         
+        objectMapper.writeValue(response.getWriter(), problem);
     }
 }

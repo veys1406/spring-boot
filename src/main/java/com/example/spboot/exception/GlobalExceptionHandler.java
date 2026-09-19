@@ -1,9 +1,18 @@
 package com.example.spboot.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.core.annotation.Order;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class GlobalExceptionHandler {// mantikli olan yontem?? 400 tane exception???
 
@@ -11,6 +20,18 @@ public class GlobalExceptionHandler {// mantikli olan yontem?? 400 tane exceptio
     public ProblemDetail handleCustom(CustomException exception){
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(exception.getStatus(), exception.getMessage());
         problem.setProperty("code", exception.getCode().name());
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException .class)
+    public ProblemDetail handleMethodArgument(MethodArgumentNotValidException exception){
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Girdi dogrulamasi basarisiz");
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        problem.setProperty("code", ErrorCode.VALIDATION_FAILED.name());
+        problem.setProperty("errors", errors);
         return problem;
     }
 

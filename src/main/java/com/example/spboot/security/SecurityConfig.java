@@ -35,7 +35,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                 JwtAuthenticationFilter jwtAuthFilter,
                                                 RateLimitFilter rateLimitFilter,
-                                                JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception{
+                                                JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                                                RestAccessDeniedHandler restAccessDeniedHandler) throws Exception{
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -52,6 +53,7 @@ public class SecurityConfig {
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
 
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .exceptionHandling(ex -> ex.accessDeniedHandler(restAccessDeniedHandler))
 
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
         return http.build();

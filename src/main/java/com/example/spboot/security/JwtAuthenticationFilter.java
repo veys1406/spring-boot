@@ -1,5 +1,6 @@
 package com.example.spboot.security;
 
+import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.service.JwtService;
 import com.example.spboot.service.JwtService.TokenStatus;
 
@@ -54,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         TokenStatus tokenStatus = jwtService.tokenStatus(token);
 
         if (tokenStatus == JwtService.TokenStatus.EXPIRED) {
-            request.setAttribute("authError", "TOKEN_EXPIRED");
+            request.setAttribute("authError", ErrorCode.TOKEN_EXPIRED);
         }
         else if(tokenStatus == JwtService.TokenStatus.VALID ){
             Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
