@@ -34,7 +34,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                 JwtAuthenticationFilter jwtAuthFilter,
-                                                RateLimitFilter rateLimitFilter) throws Exception{
+                                                RateLimitFilter rateLimitFilter,
+                                                JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception{
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -50,17 +51,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
 
-                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(401);
-                    response.setContentType("application/json");
-                    Object authErrorCode = request.getAttribute("authError");
-                    if(authErrorCode == null){
-                        response.getWriter().write("{\"code\":\"UNAUTHENTICATED\"}");
-                    }else{
-                        response.getWriter().write("{\"code\":\""+ authErrorCode.toString() +"\"}");
-                    }
-                    
-                }))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 .logout(logout->logout.disable());// Springin kendi logout mekanizmasini kapat
         return http.build();

@@ -6,6 +6,7 @@ import com.example.spboot.dto.MailUsername;
 import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
+import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.repository.AppUserRepository;
 import io.jsonwebtoken.Claims;
 
@@ -81,13 +82,13 @@ public class AuthService {
 
                 String storedUsername = (String) redisTemplate.opsForValue().get(token);
                 if(!username.equals(storedUsername)){
-                    throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token");
+                    throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token", ErrorCode.INVALID_REFRESH_TOKEN);
                 }
 
                 return jwtService.generateToken(username,role);// refresh tokenden access token uretildi kullaniciya sifre sorulmadan
             }
         }
-        throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token");
+        throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token", ErrorCode.INVALID_REFRESH_TOKEN);
     }
 
     public MessageResponse register(String username,String userMail, String password) {
@@ -105,7 +106,7 @@ public class AuthService {
             });
 
         }else{
-            throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!");
+            throw new CustomException(HttpStatus.CONFLICT,"This user is already exist!", ErrorCode.USER_EXISTS);
         }
         return new MessageResponse("Register Successfull!");
     }

@@ -2,6 +2,7 @@ package com.example.spboot.service;
 
 import com.example.spboot.entity.Notes;
 import com.example.spboot.exception.CustomException;
+import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.dto.NotesResponse;
 import com.example.spboot.repository.NotesRepository;
 
@@ -30,9 +31,9 @@ public class NotesService {
     }
 
     public NotesResponse getNoteById(String id, String username) throws CustomException {
-        Notes notes = repo.findById(id).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND,"Not bulunamadi!"));
+        Notes notes = repo.findById(id).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND,"Not bulunamadi!", ErrorCode.NOT_FOUND));
         if(!notes.getOwnerUsername().equals(username)){// IDOR
-            throw new CustomException(HttpStatus.FORBIDDEN,"Bu Not sana ait degil!");
+            throw new CustomException(HttpStatus.FORBIDDEN,"Bu Not sana ait degil!", ErrorCode.FORBIDDEN);
         }
         return new NotesResponse(notes.getId(),notes.getIcerik(),notes.getImza(),notes.getImage());
     }
