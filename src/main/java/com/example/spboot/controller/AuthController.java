@@ -110,7 +110,8 @@ public class AuthController {
     }
 
     @GetMapping("/csrf")
-    public void csrf(CsrfToken csrfToken){
+    public CsrfToken csrf(CsrfToken csrfToken){
+        return csrfToken;
         // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
     } 
 

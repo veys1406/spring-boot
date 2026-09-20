@@ -8,7 +8,11 @@ import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
 import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.repository.AppUserRepository;
+import com.example.spboot.service.JwtService.TokenStatus;
+
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwt;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -113,7 +117,7 @@ public class AuthService {
 
     public MessageResponse logout(String accessToken, String refreshToken){
 
-        if(accessToken != null){
+        if(accessToken != null && jwtService.tokenStatus(accessToken) == JwtService.TokenStatus.VALID){
             Claims claim = jwtService.parseClaims(accessToken);
             Date exp = jwtService.extractExp(claim);
             long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik

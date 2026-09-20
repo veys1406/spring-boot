@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/login", "/register"))
 
                 .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())
-                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register","/error").permitAll()
+                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register","/error","/logout").permitAll()
                                                                         .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
