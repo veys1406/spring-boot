@@ -7,14 +7,11 @@ import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
 import com.example.spboot.exception.ErrorCode;
-import com.example.spboot.rabbitmq.MailConsumer;
 import com.example.spboot.repository.AppUserRepository;
-import com.example.spboot.service.JwtService.TokenStatus;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.GetResponse;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration; 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -152,8 +150,18 @@ public class AuthService {
 
             String exchange = lastDeath.get("exchange").toString();
             String routingKey = ((List<?>) lastDeath.get("routing-keys")).get(0).toString();
+
+            Map<String, Object> newHeaders = new HashMap<>(headers);
+            Object oldCount = newHeaders.get("x-replay-count");
+            int replayCount = (oldCount == null) ? 0 : ((Number) oldCount).intValue();
+
+            newHeaders.put("x-replay-count", replayCount + 1);
+
+            AMQP.BasicProperties newProps = response.getProps().builder()
+            .headers(newHeaders)
+            .build();
             
-            channel.basicPublish(exchange, routingKey, response.getProps(), response.getBody());
+            channel.basicPublish(exchange, routingKey, newProps, response.getBody());
             channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
             log.info("{}", response);
             return null; 
