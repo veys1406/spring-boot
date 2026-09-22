@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration; 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -143,10 +145,18 @@ public class AuthService {
     public void replay(){
         rabbitTemplate.execute(channel -> {
             GetResponse response = channel.basicGet("garbage-queue", false);
-            channel.basicPublish("user.registered", "kullanici kaydoldu", response.getProps(), response.getBody());
+
+            Map<String, Object> headers = response.getProps().getHeaders();
+            List<Map<String, Object>> xDeath = (List<Map<String, Object>>) headers.get("x-death");
+            Map<String, Object> lastDeath = xDeath.get(0);
+
+            String exchange = lastDeath.get("exchange").toString();
+            String routingKey = ((List<?>) lastDeath.get("routing-keys")).get(0).toString();
+            
+            channel.basicPublish(exchange, routingKey, response.getProps(), response.getBody());
             channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
             log.info("{}", response);
-            return null;
+            return null; 
         });
     }
 
