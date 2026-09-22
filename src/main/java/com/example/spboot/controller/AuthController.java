@@ -115,4 +115,10 @@ public class AuthController {
         // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
     } 
 
+    @GetMapping("/replay")
+    public void replay(){
+        authService.replay();
+    }
+
+
 }

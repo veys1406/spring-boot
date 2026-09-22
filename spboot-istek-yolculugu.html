@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>spboot İstek Yolculuğu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F2F3EF; --surface:#FFFFFF; --surface-2:#E8EAE4; --ink:#1B201D; --muted:#5D655F; --line:#D5D9D1;
+  --accent:#1D5FA8; --accent-soft:#DCE7F4;
+  --ok:#2F7D4F; --ok-soft:#DDEFE3;
+  --stop:#B3372B; --stop-soft:#F6DEDA;
+  --handle:#9A610C; --handle-soft:#F5E8D2;
+  --skip:#8A918B;
+  --z-client:#E9EAE5; --z-sec:#ECE8F2; --z-mvc:#E4ECF4; --z-data:#E3EFE7; --z-async:#F2EBE0;
+  --code-bg:#E8EAE4;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --surface:#1A1F1C; --surface-2:#232925; --ink:#E6EAE6; --muted:#9AA39C; --line:#2F3632;
+    --accent:#86B4EC; --accent-soft:#1D2F46;
+    --ok:#6CC18E; --ok-soft:#183024;
+    --stop:#EE8577; --stop-soft:#3B1E1A;
+    --handle:#E2B263; --handle-soft:#382A13;
+    --skip:#6E7670;
+    --z-client:#1B1F1D; --z-sec:#1F1C25; --z-mvc:#172029; --z-data:#16231B; --z-async:#251F17;
+    --code-bg:#262C28;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1A1F1C; --surface-2:#232925; --ink:#E6EAE6; --muted:#9AA39C; --line:#2F3632;
+  --accent:#86B4EC; --accent-soft:#1D2F46;
+  --ok:#6CC18E; --ok-soft:#183024;
+  --stop:#EE8577; --stop-soft:#3B1E1A;
+  --handle:#E2B263; --handle-soft:#382A13;
+  --skip:#6E7670;
+  --z-client:#1B1F1D; --z-sec:#1F1C25; --z-mvc:#172029; --z-data:#16231B; --z-async:#251F17;
+  --code-bg:#262C28;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:20px;padding-block:28px 72px}
+code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);padding:.05em .35em;border-radius:4px;overflow-wrap:anywhere}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+header.top{display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+header.top h1{font-size:clamp(26px,3.4vw,36px);line-height:1.1}
+header.top p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg{width:10px;height:10px;border-radius:50%;display:inline-block}
+.lg.act{background:var(--accent)} .lg.pass{background:var(--ok)} .lg.skip{border:1.5px dashed var(--skip)} .lg.stop{background:var(--stop)} .lg.handle{background:var(--handle)}
+
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr) minmax(0,440px);gap:20px;align-items:start}
+@media (max-width:1180px){.layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .scen{grid-column:1/-1}}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+.label{font:600 11px/1.3 var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+/* senaryo listesi */
+.scen{display:flex;flex-direction:column;gap:16px}
+.sgroup{display:flex;flex-direction:column;gap:6px}
+.sgroup .list{display:flex;flex-direction:column;gap:4px}
+@media (max-width:1180px){
+  .scen{flex-direction:row;flex-wrap:wrap;gap:12px 24px}
+  .sgroup .list{flex-direction:row;flex-wrap:wrap}
+}
+.sbtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid transparent;color:var(--ink)}
+.sbtn:hover{background:var(--surface)}
+.sbtn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sbtn[aria-pressed="true"]{background:var(--surface);border-color:var(--line);box-shadow:0 1px 0 var(--line)}
+.sbtn .m{font:500 12.5px/1.3 var(--mono)}
+.sbtn .d{font-size:12.5px;color:var(--muted)}
+.meth{font-weight:600}
+.meth.GET{color:var(--ok)} .meth.POST{color:var(--accent)} .meth.OPTIONS{color:var(--handle)} .meth.AMQP{color:var(--handle)}
+
+/* pipeline */
+.pipe{display:flex;flex-direction:column;gap:10px}
+.zone{background:var(--zone);border-radius:12px;padding:10px 10px 8px}
+.zone header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:0 4px 6px}
+.zone header h3{font-size:14.5px}
+.zone header small{color:var(--muted);font-size:12px}
+.st{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:7px 8px;border-radius:8px;border:1px solid transparent;transition:background .15s,border-color .15s,opacity .15s}
+.st + .st{margin-top:2px}
+.st .dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--line);background:transparent}
+.st .nm{font-weight:500;font-size:14px;line-height:1.25}
+.st .cl{grid-column:2/4;font:12px/1.35 var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.st .nums{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
+.st .nums b{font:500 11px/1 var(--mono);padding:3px 5px;border-radius:5px;background:var(--surface);color:var(--muted);cursor:pointer}
+.st .nums b.cur{background:var(--accent);color:var(--surface)}
+.st[data-state="none"]{opacity:.42}
+.st[data-state="act"] .dot{background:var(--accent);border-color:var(--accent)}
+.st[data-state="pass"] .dot{background:var(--ok);border-color:var(--ok)}
+.st[data-state="skip"] .dot{border-style:dashed;border-color:var(--skip)}
+.st[data-state="stop"] .dot{background:var(--stop);border-color:var(--stop)}
+.st[data-state="handle"] .dot{background:var(--handle);border-color:var(--handle)}
+.st[data-state="stop"]{background:var(--stop-soft)}
+.st.current{background:var(--surface);border-color:var(--accent)}
+
+/* detay */
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+@media (min-width:761px){.detail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto}}
+.detail h2{font-size:21px;line-height:1.2}
+.reqline{font:500 14px/1.4 var(--mono);overflow-wrap:anywhere}
+.intro{margin:0;color:var(--muted);font-size:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;font:500 13px/1 var(--body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn:hover{background:var(--surface-2)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.counter{font:500 12.5px var(--mono);color:var(--muted);margin-left:auto}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:2px 10px;padding:8px 8px 8px 6px;border-radius:8px;border-left:3px solid var(--line);cursor:pointer}
+.step:hover{background:var(--bg)}
+.step .n{font:500 12px/1.6 var(--mono);color:var(--muted);text-align:right}
+.step .where{font-weight:600;font-size:13.5px}
+.step .txt{grid-column:2;font-size:13.5px;color:var(--ink)}
+.step .tags{grid-column:2;display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.tag{all:unset;cursor:pointer;font:500 11px/1 var(--mono);padding:3px 6px;border-radius:5px;background:var(--surface-2);color:var(--muted)}
+.tag:hover,.tag:focus-visible{background:var(--accent-soft);color:var(--accent)}
+.step[data-state="act"]{border-left-color:var(--accent)}
+.step[data-state="pass"]{border-left-color:var(--ok)}
+.step[data-state="skip"]{border-left-color:var(--skip);border-left-style:dashed}
+.step[data-state="stop"]{border-left-color:var(--stop)}
+.step[data-state="handle"]{border-left-color:var(--handle)}
+.step.current{background:var(--accent-soft)}
+.step.future{opacity:.3}
+.divider{font:500 12px/1.4 var(--mono);color:var(--handle);padding:8px 0 4px 38px;display:flex;gap:8px;align-items:center}
+.divider::after{content:"";flex:1;border-top:1px dashed var(--handle);opacity:.6}
+.divider.future{opacity:.3}
+.resp{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.status{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--mono)}
+.pill{padding:3px 8px;border-radius:6px;font:600 13px var(--mono)}
+.pill.s2{background:var(--ok-soft);color:var(--ok)} .pill.s4{background:var(--stop-soft);color:var(--stop)} .pill.s5{background:var(--stop-soft);color:var(--stop)}
+pre.json{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:12.5px/1.5 var(--mono);overflow-x:auto;white-space:pre}
+.hdrs{font:12px/1.5 var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.note{font-size:13.5px;background:var(--handle-soft);border-radius:8px;padding:10px 12px;color:var(--ink)}
+.note b{color:var(--handle)}
+
+/* alt bölümler */
+section.more{margin-top:48px;display:flex;flex-direction:column;gap:18px}
+section.more > h2{font-size:24px}
+section.more > p{margin:0;color:var(--muted);max-width:70ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:16px}
+.card.flash{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.card .hd{display:flex;gap:10px;align-items:baseline}
+.card .no{font:600 13px var(--mono);color:var(--accent)}
+.card h3{font-size:17px}
+.card .weak{margin-left:auto;font:600 10.5px/1 var(--body);text-transform:uppercase;letter-spacing:.07em;color:var(--handle);background:var(--handle-soft);padding:4px 6px;border-radius:5px;white-space:nowrap}
+.card dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:13.5px}
+.card dt{font-weight:600;color:var(--muted)}
+.card dd{margin:0}
+.card .rule{font-size:13.5px;border-top:1px solid var(--line);padding-top:8px;margin-top:2px}
+.card .go{display:flex;flex-wrap:wrap;gap:6px}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px}
+.tablebox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.tablebox h3{font-size:17px;margin-bottom:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+td.k{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.gap-id{font:600 12px var(--mono);color:var(--handle);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="label">spboot · Spring Boot 4.1 / Java 21</div>
+      <h1>Bir istek içeride neler yaşıyor?</h1>
+      <p>Soldan bir senaryo seç. Ortada isteğin geçtiği her durak, sağda sırayla ne olduğu ve tarayıcıya dönen cevap var. <b>Adım adım</b> ile yolculuğu tek tek ilerletebilirsin (klavyede ← →). Köşeli etiketler <code>[1]</code>…<code>[8]</code> ilgili bölüm özetine götürür.</p>
+    </div>
+    <div class="legend" aria-label="Durak durumları">
+      <span><i class="lg act"></i>iş yaptı</span>
+      <span><i class="lg pass"></i>kontrol etti, geçirdi</span>
+      <span><i class="lg skip"></i>dokunmadan geçirdi</span>
+      <span><i class="lg stop"></i>durdurdu / patladı</span>
+      <span><i class="lg handle"></i>hatayı ele aldı</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="scen" id="scen" aria-label="Senaryolar"></nav>
+    <div class="pipe" id="pipe"></div>
+    <aside class="detail" id="detail" aria-live="polite"></aside>
+  </div>
+
+  <section class="more" id="bolumler">
+    <h2>8 bölüm, tek resim</h2>
+    <p>Her bölümün "sorun → ne yaptık → neden" özeti. Senaryo düğmeleri o bölümü en iyi gösteren yolculuğu açar.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="more">
+    <h2>Hafıza haritası ve açık uçlar</h2>
+    <div class="twocol">
+      <div class="tablebox">
+        <h3>Redis'te duran dört şey</h3>
+        <table>
+          <thead><tr><th>Anahtar</th><th>Değer</th><th>TTL</th><th>Kim yazar / okur</th></tr></thead>
+          <tbody>
+            <tr><td class="k">&lt;refreshToken&gt;</td><td><code>username</code></td><td>7 gün</td><td><code>AuthService.login</code> yazar, <code>refresh</code> okur, <code>logout</code> siler</td></tr>
+            <tr><td class="k">&lt;accessToken&gt;</td><td><code>"blacklisted"</code></td><td>kalan ömür</td><td><code>logout</code> yazar, <code>JwtAuthenticationFilter</code> okur</td></tr>
+            <tr><td class="k">ratelimit:login:&lt;ip&gt;</td><td>kova durumu</td><td>~1 dk</td><td><code>RateLimitFilter</code> (Bucket4j)</td></tr>
+            <tr><td class="k">&lt;message_id&gt;</td><td><code>"mailSent"</code></td><td>1 gün</td><td><code>MailConsumer</code> okur + yazar</td></tr>
+          </tbody>
+        </table>
+        <p class="intro" style="margin-top:10px">Ortak kural: kendiliğinden ölmesi gereken her şey Redis'te, kalıcı olan her şey (<code>AppUser</code>, <code>Notes</code>) Mongo'da. Redis'e volume verilmedi. Restart'ta blacklist de gider, bu bilinçli bir taviz. Anahtarlar gerçekte JDK serialization önekiyle yazılıyor.</p>
+      </div>
+      <div class="tablebox">
+        <h3>Bilerek açık bırakılanlar</h3>
+        <table>
+          <tbody>
+            <tr><td class="gap-id">G4</td><td><code>/register</code>, <code>/refresh</code> ve <code>/logout</code>'ta rate limit yok. <code>/register</code> artık gerçek mail gönderdiği için daha önemli.</td></tr>
+            <tr><td class="gap-id">G5</td><td><code>refreshToken</code> cookie'si <code>path=/refresh</code>, bu yüzden <code>/logout</code>'a hiç gitmiyor ve logout onu Redis'ten silemiyor.</td></tr>
+            <tr><td class="gap-id">M4-f</td><td><code>max-attempts=3</code> Boot 4'te okunmuyor, gerçekte 4 deneme yapılıyor.</td></tr>
+            <tr><td class="gap-id">M5-a</td><td>İki consumer aynı mesajı paralel işlerse "kontrol et → gönder" arasında yarış çıkar.</td></tr>
+            <tr><td class="gap-id">M7</td><td>Retry beklerken tek consumer thread'i bloke oluyor, arkadaki mesajlar da bekliyor. Sıradaki konu.</td></tr>
+            <tr><td class="gap-id">G1</td><td>İmaj Trivy ile taranmadı.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const ZONES = [
+  {id:"client", name:"Tarayıcı", sub:"React · localhost:5173", tint:"--z-client", stations:["browser"]},
+  {id:"sec", name:"Spring Security filter chain", sub:"kapıdaki görevli", tint:"--z-sec", stations:["cors","csrf","ratelimit","jwt","etf","authz","secwriter"]},
+  {id:"mvc", name:"Spring MVC", sub:"DispatcherServlet içi", tint:"--z-mvc", stations:["args","controller","service","repo","advice"]},
+  {id:"data", name:"Veri", sub:"Docker konteynerleri", tint:"--z-data", stations:["mongo","redis"]},
+  {id:"async", name:"Asenkron mail hattı", sub:"RabbitMQ · AMQP → SMTP", tint:"--z-async", stations:["exchange","queue","consumer","mailpit","dlq"]}
+];
+
+const ST = {
+  browser:{name:"Tarayıcı", cls:"fetch · cookie jar"},
+  cors:{name:"CORS", cls:"CorsFilter"},
+  csrf:{name:"CSRF", cls:"CsrfFilter"},
+  ratelimit:{name:"Rate limit", cls:"RateLimitFilter"},
+  jwt:{name:"JWT kimlik", cls:"JwtAuthenticationFilter"},
+  etf:{name:"Hata çevirici", cls:"ExceptionTranslationFilter"},
+  authz:{name:"Yetki kuralı", cls:"AuthorizationFilter · authorizeHttpRequests"},
+  secwriter:{name:"Security cevap yazıcıları", cls:"JwtAuthenticationEntryPoint (401) · RestAccessDeniedHandler (403)"},
+  args:{name:"Argüman çözümü", cls:"Jackson (JSON ⇄ DTO) + @Validated"},
+  controller:{name:"Controller — garson", cls:"AuthController · NotesController"},
+  service:{name:"Service — aşçı", cls:"AuthService · NotesService"},
+  repo:{name:"Repository — depocu", cls:"AppUserRepository · NotesRepository"},
+  advice:{name:"MVC hata yazıcısı", cls:"GlobalExceptionHandler (@RestControllerAdvice)"},
+  mongo:{name:"MongoDB", cls:"mongo:27017 · kalıcı"},
+  redis:{name:"Redis", cls:"redis:6379 · TTL'li"},
+  exchange:{name:"Exchange", cls:"user.registered (direct)"},
+  queue:{name:"Kuyruk", cls:"mail-queue (x-dead-letter-exchange)"},
+  consumer:{name:"Consumer", cls:"MailConsumer · OwnRecoverer"},
+  mailpit:{name:"Mailpit", cls:"SMTP :1025 · UI :8025"},
+  dlq:{name:"Dead letter", cls:"message.rejected (fanout) → garbage-queue"}
+};
+
+/* Ortak parçalar */
+const corsOk = ["cors","pass","Origin `http://localhost:5173` izinli; `allowCredentials(true)` cookie'li isteğe izin veriyor.",[4]];
+const csrfSafe = ["csrf","skip","GET güvenli (safe) bir method. CSRF kontrolü sadece state değiştiren isteklerde (POST/PUT/DELETE) yapılıyor.",[4]];
+const csrfOk = ["csrf","pass","`XSRF-TOKEN` cookie'sindeki değer == `X-XSRF-TOKEN` header'ındaki değer → geç. Düz `CsrfTokenRequestAttributeHandler` (XOR'suz, SPA uyumlu).",[4]];
+const csrfIgnored = p => ["csrf","skip","`"+p+"` `ignoringRequestMatchers` listesinde. Henüz karşılaştırılacak bir token yok.",[4]];
+const rlSkip = ["ratelimit","skip","Path `/login` değil → hiçbir şey yapmadan geçirir.",[4]];
+const jwtValid = [
+  ["jwt","act","Cookie'den `accessToken` → `tokenStatus()` = VALID. Sıradaki soru: iptal edilmiş mi?",[2,3]],
+  ["redis","act","`hasKey(token)` → false. Token blacklist'te değil.",[3,5]],
+  ["jwt","act","`SecurityContext`'e username + `ROLE_USER` yazılır (şifresiz, 3 parametreli token = doğrulanmış kimlik). Sonra `doFilter()` → devam.",[2]]
+];
+const jwtNone = ["jwt","pass","Cookie yok → `tokenStatus(null)` = INVALID → pano boş kalır, istek yine ilerler. Reddetmek filter'ın işi değil.",[2]];
+const etfOpen = ["etf","pass","Sonrasını `try` içine alır. Exception gelmezse yapacak işi yok.",[6]];
+const authzAuthed = ["authz","pass","`anyRequest().authenticated()` → panoda kimlik var → geç.",[2]];
+const authzPermit = p => ["authz","pass","`"+p+"` `permitAll` listesinde → kimlik sorulmadan geçer.",[2]];
+
+const SCEN = [
+ {group:"Notlar", items:[
+  {id:"mynotes", m:"GET", p:"/mynotes", d:"geçerli token", title:"Notlarımı listele",
+   intro:"En sade başarılı yolculuk. Her katman kendi işini yapıyor, hiçbiri reddetmiyor.",
+   steps:[
+    ["browser","act","İstek çıkar. Tarayıcı `accessToken` cookie'sini (path=/) otomatik ekler; JS token'ı hiç görmez (httpOnly).",[3]],
+    corsOk, csrfSafe, rlSkip, ...jwtValid, etfOpen, authzAuthed,
+    ["controller","act","`@AuthenticationPrincipal String username` panodan dolar → `notesService.getMyNotes(username)`. Garson HTTP'yi okur, karar vermez.",[1,2]],
+    ["service","act","Listeleme ID sormaz; sorgu zaten kullanıcıya göre filtreli. IDOR'a yapısal koruma.",[1,4]],
+    ["repo","act","`findByOwnerUsername(username)` (derived query).",[1,5]],
+    ["mongo","act","`notes` koleksiyonundan sadece bu kullanıcının belgeleri döner.",[5]],
+    ["service","act","Her `Notes` entity → `NotesResponse` DTO. `ownerUsername` dışarı çıkmaz.",[1]],
+    ["args","act","Jackson listeyi JSON'a yazar; `byte[] image` otomatik Base64 olur.",[1]],
+    ["browser","pass","200 + liste.",[1]]
+   ],
+   resp:{status:200, text:"OK", body:[{id:"66f1c0…a9", icerik:"Alışveriş listesi", imza:"veysel", image:null}]}
+  },
+  {id:"idor", m:"GET", p:"/notes/{id}", d:"başkasının notu", title:"Başkasının notunu okumaya çalış (IDOR)",
+   intro:"Kimlik geçerli, rol yeterli. Ama veri ona ait değil. Bunu Spring bilemez, aşçı kontrol eder.",
+   steps:[
+    ["browser","act","ID URL'de. Saldırgan ID'yi değiştirip başkasının notunu deniyor.",[4]],
+    corsOk, csrfSafe, rlSkip, ...jwtValid, etfOpen, authzAuthed,
+    ["controller","act","`@PathVariable id` URL'den, `username` panodan gelir. İkisi de düz `String` olarak service'e gider (request DTO yok, GET'in body'si yok).",[1]],
+    ["service","act","Önce veri lazım: `repo.findById(id)`.",[1]],
+    ["repo","act","`findById`",[5]],
+    ["mongo","act","Not bulundu. Yani 404 değil.",[5]],
+    ["service","stop","`notes.getOwnerUsername().equals(username)` → false → `CustomException(403, \"Bu Not sana ait degil!\", FORBIDDEN)`. IDOR = burada yazılmamış tek bir `if`.",[4,6]],
+    ["advice","handle","`handleCustom` status'u ve `code`'u exception'dan okur → `ProblemDetail`.",[6]],
+    ["browser","stop","403. ADMIN rolüyle denense de sonuç aynı: rol ≠ sahiplik.",[2,4]]
+   ],
+   resp:{status:403, text:"Forbidden", ct:"application/problem+json", body:{type:"about:blank", title:"Forbidden", status:403, detail:"Bu Not sana ait degil!", instance:"/notes/66f1…", code:"FORBIDDEN"}}
+  },
+  {id:"notfound", m:"GET", p:"/notes/{id}", d:"olmayan not", title:"Olmayan bir notu iste",
+   intro:"Sıra önemli: aşçı sahipliği sorabilmek için önce notu depocudan almak zorunda.",
+   steps:[
+    corsOk, csrfSafe, rlSkip, ...jwtValid, etfOpen, authzAuthed,
+    ["controller","act","`getNoteById(id, username)`",[1]],
+    ["service","act","`repo.findById(id)`",[1]],
+    ["mongo","act","Kayıt yok → `Optional.empty()`.",[5]],
+    ["service","stop","`orElseThrow(() -> new CustomException(404, \"Not bulunamadi!\", NOT_FOUND))`",[6]],
+    ["advice","handle","ProblemDetail + `code: NOT_FOUND`. Eskiden (A7) yakalanmayan exception `/error`'a düşüyor ve 403'e dönüşüyordu.",[6]],
+    ["browser","stop","404.",[6]]
+   ],
+   resp:{status:404, text:"Not Found", ct:"application/problem+json", body:{type:"about:blank", title:"Not Found", status:404, detail:"Not bulunamadi!", instance:"/notes/000000000000000000000000", code:"NOT_FOUND"}}
+  },
+  {id:"postnote", m:"POST", p:"/notes?imza=…", d:"not ekle", title:"Yeni not ekle",
+   intro:"State değiştiren bir istek. CSRF kontrolü ilk kez gerçekten çalışıyor.",
+   steps:[
+    ["browser","act","Body: `{\"icerik\":\"…\"}`. Cookie'ler: `accessToken` + `XSRF-TOKEN`. `api.js`, `XSRF-TOKEN` cookie'sini okuyup `X-XSRF-TOKEN` header'ına kopyalar (bunun için cookie httpOnly değil).",[4]],
+    corsOk, csrfOk, rlSkip, ...jwtValid, etfOpen, authzAuthed,
+    ["args","act","JSON body → `NotesRequest`. `imza` URL'den (`@RequestParam`).",[1]],
+    ["controller","act","`createNote(icerik, imza, username)`. Sahip client'tan değil panodan alınır; client başkası adına not yazamaz.",[1,4]],
+    ["service","act","Yeni `Notes`, `ownerUsername` = panodaki username.",[1]],
+    ["repo","act","`save(notes)`",[5]],
+    ["mongo","act","Belge eklenir, `_id` = ObjectId.",[5]],
+    ["browser","pass","200, gövde boş (metot `void`). Anlam olarak 201 daha doğru olurdu (M10-a bulgusu).",[6]]
+   ],
+   resp:{status:200, text:"OK", body:null}
+  },
+  {id:"csrf", m:"POST", p:"/notes", d:"X-XSRF-TOKEN yok", title:"CSRF header'ı eksik",
+   intro:"Başka bir sitenin tetiklediği istek ya da `/csrf` henüz çağrılmamış bir oturum. Kimlik kontrolüne sıra bile gelmiyor.",
+   steps:[
+    ["browser","act","Cookie'ler gidiyor ama `X-XSRF-TOKEN` header'ı yok. Saldırganın JS'i cookie'yi okuyamadığı için header'ı dolduramaz (SOP). Ayrıca `SameSite=Strict` başka siteden gelen istekte cookie'yi zaten göndermez: iki katman.",[4]],
+    corsOk,
+    ["csrf","stop","Cookie değeri ≠ header değeri → `CsrfException`. `CsrfFilter` zincirde `ExceptionTranslationFilter`'dan önce olduğu için exception'ı yukarı fırlatmaz, doğrudan `exceptionHandling`'de tanımlı handler'a verir.",[4,6]],
+    ["secwriter","handle","`RestAccessDeniedHandler`: `instanceof CsrfException` → `code: CSRF_INVALID`, detail değişir.",[6]],
+    ["browser","stop","403. JWT filter, controller ve Mongo hiç çalışmadı.",[4]]
+   ],
+   resp:{status:403, text:"Forbidden", ct:"application/problem+json", body:{type:"about:blank", title:"Forbidden", status:403, detail:"CSRF token gecersiz", instance:"/notes", code:"CSRF_INVALID"}}
+  },
+  {id:"preflight", m:"OPTIONS", p:"/notes", d:"CORS preflight", title:"Tarayıcının ön sorusu (preflight)",
+   intro:"JSON body + credentials olan bir cross-origin istekten önce tarayıcı izin sorar. Bu istekte cookie de kimlik de yok.",
+   steps:[
+    ["browser","act","`OPTIONS` + `Origin` + `Access-Control-Request-Method: POST`. Kimlik bilgisi taşımaz.",[4]],
+    ["cors","act","Preflight'ı kendisi cevaplar ve zincir burada biter. Ek emniyet olarak `permitAll(OPTIONS)` ve JWT filter'daki OPTIONS bypass'ı da var.",[4]],
+    ["browser","pass","İzin geldi, asıl `POST` şimdi gönderilir.",[4]]
+   ],
+   resp:{status:200, text:"OK", headers:"Access-Control-Allow-Origin: http://localhost:5173\nAccess-Control-Allow-Credentials: true\nAccess-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS", body:null}
+  }
+ ]},
+ {group:"Oturum", items:[
+  {id:"login", m:"POST", p:"/login", d:"doğru şifre", title:"Giriş yap",
+   intro:"İki token doğuyor. Biri Redis'e kaydediliyor, ikisi de JS'in göremeyeceği cookie'lere yazılıyor.",
+   steps:[
+    ["browser","act","Body: `{\"username\",\"password\"}`. Henüz cookie yok.",[3]],
+    corsOk, csrfIgnored("/login"),
+    ["ratelimit","pass","Anahtar `ratelimit:login:<ip>` → Bucket4j `tryConsume(1)` → jeton var.",[4]],
+    ["redis","act","Kova durumu okunur/güncellenir. Sayaç ortak olduğu için kaç app kopyası olursa olsun limit 5.",[4,5]],
+    jwtNone, etfOpen, authzPermit("/login"),
+    ["args","act","JSON → `LoginRequest` + `@Validated` (`@NotBlank`). `password` alanı `String` tipinde; NoSQL injection burada ölür.",[1,4]],
+    ["controller","act","DTO'dan düz String'ler: `authService.login(username, password)`.",[1]],
+    ["service","act","`authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(u, p))`. 2 parametreli = henüz doğrulanmamış iddia.",[2]],
+    ["repo","act","`CustomUserDetailsService.loadUserByUsername` → `findByUsername`.",[2,5]],
+    ["mongo","act","`AppUser`: BCrypt hash + role.",[5]],
+    ["service","act","BCrypt `matches()` tuttu → access (30 dk, `role`, `type:access`) + refresh (7 gün, `type:refresh`, rol yok).",[3]],
+    ["redis","act","`set(refreshToken, username, 7 gün)`. Redis'te yoksa refresh token geçersiz sayılır → iptal edilebilirlik.",[3,5]],
+    ["controller","act","İki `ResponseCookie`: `accessToken` (httpOnly, path=/, SameSite=Strict, 30 dk) ve `refreshToken` (httpOnly, path=/refresh, 7 gün). Token body'de yok (ADR 002).",[3]],
+    ["browser","pass","200. Ardından frontend `GET /csrf` çağırır → deferred CSRF token üretilir, `XSRF-TOKEN` cookie'si yazılır.",[4]]
+   ],
+   resp:{status:200, text:"OK", headers:"Set-Cookie: accessToken=eyJ…; Path=/; Max-Age=1800; HttpOnly; SameSite=Strict\nSet-Cookie: refreshToken=eyJ…; Path=/refresh; Max-Age=604800; HttpOnly; SameSite=Strict", body:{message:"Giriş Başarılı"}}
+  },
+  {id:"loginbad", m:"POST", p:"/login", d:"yanlış şifre", title:"Yanlış şifreyle giriş",
+   intro:"Exception service'te doğuyor ama cevabı Security katmanı yazıyor. Yolu belirleyen, exception'ın doğduğu yer değil tipi.",
+   steps:[
+    corsOk, csrfIgnored("/login"),
+    ["ratelimit","pass","Jeton harcanır. Yanlış denemeler de sayılır, brute force bu yüzden 5'te kesilir.",[4]],
+    jwtNone, etfOpen, authzPermit("/login"),
+    ["args","act","`LoginRequest` geçerli.",[1]],
+    ["controller","act","`authService.login(...)`",[1]],
+    ["service","act","`authenticate(...)` → kullanıcı Mongo'dan yüklenir.",[2]],
+    ["mongo","act","`AppUser` bulundu.",[5]],
+    ["service","stop","BCrypt uyuşmadı → `BadCredentialsException` (bir `AuthenticationException`). Kullanıcı hiç yoksa da Spring aynı exception'ı verir, kullanıcı adı sızmasın diye.",[2,6]],
+    ["advice","skip","Advice'ta bu tip için handler yok → exception MVC'den dışarı çıkar.",[6]],
+    ["etf","handle","Filter zincirinde geri dönerken yakalar: `AuthenticationException` → entry point'e.",[6]],
+    ["secwriter","handle","`JwtAuthenticationEntryPoint.commence`: attribute yok, tip `BadCredentialsException` → `INVALID_CREDENTIALS`.",[6]],
+    ["browser","stop","401. Entry point tanımlı olmasaydı: 403 + boş gövde (`Http403ForbiddenEntryPoint`).",[6]]
+   ],
+   resp:{status:401, text:"Unauthorized", ct:"application/problem+json", body:{type:"about:blank", title:"Unauthorized", status:401, detail:"Kimlik dogrulanamadi", instance:"/login", code:"INVALID_CREDENTIALS"}}
+  },
+  {id:"ratelimit", m:"POST", p:"/login", d:"1 dk içinde 6. deneme", title:"Brute force: kova boş",
+   intro:"Pahalı işlere (JWT parse, BCrypt, Mongo) hiç girilmeden kapıda kesiliyor.",
+   steps:[
+    corsOk, csrfIgnored("/login"),
+    ["redis","act","Bu IP'nin kovası: 0 jeton.",[4,5]],
+    ["ratelimit","stop","`tryConsume(1)` = false → ProblemDetail'i filter kendisi yazar, `doFilter()` çağrılmaz. Zincir burada biter.",[4,6]],
+    ["browser","stop","429. Jetonlar dakikada 5 hızla geri dolar (token bucket).",[4]]
+   ],
+   resp:{status:429, text:"Too Many Requests", ct:"application/problem+json", body:{type:"about:blank", title:"Too Many Requests", status:429, detail:"Cok fazla istek attiniz", code:"RATE_LIMITED"}},
+   note:"<b>Bilinen sınır:</b> `getRemoteAddr()` proxy arkasında proxy'nin IP'sini döner. `/register` ve `/refresh` limitsiz (G4)."
+  },
+  {id:"nosql", m:"POST", p:"/login", d:"{\"$ne\": null} şifre", title:"NoSQL injection denemesi",
+   intro:"Tamamen geçerli bir JSON, ama string beklenen alana bir Mongo operatör objesi konmuş.",
+   steps:[
+    ["browser","act","`{\"username\":\"veysel\",\"password\":{\"$ne\":null}}`",[4]],
+    corsOk, csrfIgnored("/login"),
+    ["ratelimit","pass","Jeton harcanır, deneme sayılır.",[4]],
+    jwtNone, etfOpen, authzPermit("/login"),
+    ["args","stop","`password` alanı `String`, gelen değer obje → Jackson çeviremez → `HttpMessageNotReadableException`. Controller'a hiç girilmez, Mongo'ya hiçbir şey gitmez.",[4]],
+    ["advice","handle","Bizim advice'ta bu tip için handler yok. `spring.mvc.problemdetails.enabled` ile gelen Spring handler'ı ProblemDetail yazar, ama `code` alanı yok.",[6]],
+    ["browser","stop","400.",[4]]
+   ],
+   resp:{status:400, text:"Bad Request", ct:"application/problem+json", body:{type:"about:blank", title:"Bad Request", status:400, detail:"Failed to read request", instance:"/login"}}
+  },
+  {id:"expired", m:"GET", p:"/mynotes", d:"süresi dolmuş token", title:"30 dakika sonra: token süresi doldu",
+   intro:"Filter reddetmiyor, not bırakıyor. Kararı zincirin sonu veriyor, cevabı entry point yazıyor.",
+   steps:[
+    ["browser","act","Süresi dolmuş `accessToken` cookie'si gider (Postman'de ya da cookie'yi elle tutan bir istemcide; aşağıdaki nota bak).",[3]],
+    corsOk, csrfSafe, rlSkip,
+    ["jwt","act","`tokenStatus()` = EXPIRED → panoya yazılmaz; `request.setAttribute(\"authError\", TOKEN_EXPIRED)` ile sonraki halkaya not bırakılır. Sonra yine `doFilter()`.",[2,3]],
+    etfOpen,
+    ["authz","stop","Pano anonim → `AccessDeniedException` fırlatır. Kararı verir, cevabı yazmaz.",[2,6]],
+    ["etf","handle","Yakalar. Kimlik anonim → entry point (kimlik olsaydı 403 handler'a giderdi).",[6]],
+    ["secwriter","handle","Entry point attribute'u okur → `code: TOKEN_EXPIRED`.",[6]],
+    ["browser","stop","401 + `TOKEN_EXPIRED` → frontend \"/refresh dene\" diye karar verebilir. Gövde \"ne oldu\"yu söyler, ne yapılacağına istemci karar verir.",[3,6]]
+   ],
+   resp:{status:401, text:"Unauthorized", ct:"application/problem+json", body:{type:"about:blank", title:"Unauthorized", status:401, detail:"Kimlik dogrulanamadi", instance:"/mynotes", code:"TOKEN_EXPIRED"}},
+   note:"<b>Koddan çıkan bir bulgu:</b> `accessToken` cookie'sinin `Max-Age`'i de 30 dk, token'ın ömrüyle aynı. Gerçek tarayıcıda cookie token'la neredeyse aynı anda silinir, istek cookie'siz gider ve cevap `UNAUTHENTICATED` olur. `TOKEN_EXPIRED` en net Postman'de görülür. Frontend'in otomatik refresh'i için önemli."
+  },
+  {id:"refresh", m:"POST", p:"/refresh", d:"yeni access token", title:"Şifre sormadan yeni access token",
+   intro:"Uzun ömürlü token'a sadece imzasına bakarak güvenilmiyor. Dört şart var.",
+   steps:[
+    ["browser","act","Cookie path'i eşleştiği için tarayıcı `refreshToken`'ı sadece bu istekte ekler. Yanında `X-XSRF-TOKEN` da gider.",[3]],
+    corsOk,
+    ["csrf","pass","`/refresh` CSRF'ten muaf değil → cookie == header kontrolü yapılır.",[4]],
+    ["ratelimit","skip","Limit yok (G4).",[4]],
+    ["jwt","pass","`accessToken` ya tarayıcıdan silinmiş ya da EXPIRED → pano boş. Burada önemi yok, çünkü:",[2]],
+    etfOpen, authzPermit("/refresh"),
+    ["controller","act","Cookie'ler arasından `refreshToken` bulunur → `authService.refresh(token)`.",[1,3]],
+    ["service","act","1) `tokenStatus` VALID  2) `type == \"refresh\"` (type confusion'a karşı).",[3]],
+    ["redis","act","3) `hasKey(token)`  4) Redis'teki username == token'daki username.",[3,5]],
+    ["repo","act","Rol token'dan değil, `loadUserByUsername` ile taze çekilir; 7 günde yetki değişmiş olabilir.",[3]],
+    ["mongo","act","`AppUser.role`",[5]],
+    ["service","act","Yeni access token (30 dk). Refresh token döndürülmez, rotation yok (ADR 001).",[3]],
+    ["controller","act","Yeni `accessToken` cookie'si. Token yine body'de değil.",[3]],
+    ["browser","pass","200. Şartlardan biri tutmasaydı: `CustomException(401, INVALID_REFRESH_TOKEN)`.",[3,6]]
+   ],
+   resp:{status:200, text:"OK", headers:"Set-Cookie: accessToken=eyJ…; Path=/; Max-Age=1800; HttpOnly; SameSite=Strict", body:{message:"AccessToken guncellendi.(Refresh)"}}
+  },
+  {id:"logout", m:"POST", p:"/logout", d:"çıkış", title:"Çıkış yap",
+   intro:"Stateless JWT'yi iptal etmenin yolu: iptal listesini hatırlamak.",
+   steps:[
+    ["browser","act","`accessToken` + `X-XSRF-TOKEN` gider. `refreshToken` gitmez (path=/refresh) ve JS onu okuyamadığı için body'ye de koyamaz → G5.",[3]],
+    corsOk,
+    ["csrf","pass","`/logout` CSRF'ten muaf değil.",[4]],
+    ["ratelimit","skip","Limit yok.",[4]],
+    ["jwt","act","Token VALID → panoya yazılır (ama bu endpoint için gerekli değil).",[2]],
+    etfOpen,
+    ["authz","pass","`/logout` permitAll (A12): süresi dolmuş token'la da çıkış yapılabilsin.",[2]],
+    ["controller","act","`accessToken` cookie'den; refresh token body'den beklenir → body yok → `null`.",[1]],
+    ["service","act","`tokenStatus == VALID` ise (beyaz liste mantığı) kalan süre = `exp - now`.",[3]],
+    ["redis","act","`set(accessToken, \"blacklisted\", kalan süre)`. Süre dolunca kayıt kendiliğinden silinir.",[3,5]],
+    ["service","skip","`refreshToken == null` → Redis'ten silinemedi. Çalınmışsa 7 gün boyunca yeni access token üretebilir (G5).",[3]],
+    ["browser","pass","200. Sunucu cookie'yi temizlemiyor. Token tarayıcıda kalıyor ama blacklist'te olduğu için artık işe yaramıyor.",[3]]
+   ],
+   resp:{status:200, text:"OK", body:{message:"Çıkış Başarılı"}}
+  },
+  {id:"blacklisted", m:"GET", p:"/mynotes", d:"logout edilmiş token", title:"Çıkıştan sonra aynı token'la istek",
+   intro:"İmza sağlam, süre dolmamış, ama sunucu bu token'ı iptal listesinde hatırlıyor.",
+   steps:[
+    ["browser","act","Logout edilmiş (ya da çalınmış) token gönderilir.",[3]],
+    corsOk, csrfSafe, rlSkip,
+    ["jwt","act","`tokenStatus()` = VALID…",[2,3]],
+    ["redis","act","…ama `hasKey(token)` = true → blacklist'te.",[3,5]],
+    ["jwt","act","Panoya yazılmaz. Attribute da bırakılmaz, çünkü süre dolmadı, iptal edildi.",[2,3]],
+    etfOpen,
+    ["authz","stop","Pano anonim → `AccessDeniedException`.",[2]],
+    ["etf","handle","Anonim → entry point.",[6]],
+    ["secwriter","handle","Attribute yok, tip BadCredentials değil → `UNAUTHENTICATED`.",[6]],
+    ["browser","stop","401 `UNAUTHENTICATED` → frontend login ekranına yönlendirir. Redis restart olsaydı blacklist gider ve token kalan ömrü boyunca yeniden geçerli olurdu.",[3,7]]
+   ],
+   resp:{status:401, text:"Unauthorized", ct:"application/problem+json", body:{type:"about:blank", title:"Unauthorized", status:401, detail:"Kimlik dogrulanamadi", instance:"/mynotes", code:"UNAUTHENTICATED"}}
+  }
+ ]},
+ {group:"Kayıt ve mail", items:[
+  {id:"register", m:"POST", p:"/register", d:"mail gidiyor", title:"Kayıt ol, hoş geldin maili al",
+   intro:"Kullanıcı cevabını alırken mail henüz gitmemiş oluyor. Dört program, üç protokol: HTTP, AMQP, SMTP.",
+   steps:[
+    ["browser","act","Body: `{\"username\",\"userMail\",\"password\"}`",[1]],
+    corsOk, csrfIgnored("/register"),
+    ["ratelimit","skip","Limit yok (G4).",[4]],
+    jwtNone, etfOpen, authzPermit("/register"),
+    ["args","pass","`RegisterRequest` + `@Validated`: `@Email`, `@Size(6–12)` şifre. Kalıcı hata kapıda yakalanır.",[1,8]],
+    ["controller","act","`authService.register(username, userMail, password)`",[1]],
+    ["service","act","Kullanıcı var mı?",[1]],
+    ["repo","act","`findByUsername` → boş.",[5]],
+    ["service","act","BCrypt `encode`, `role = \"USER\"` sabit (client rolünü seçemez).",[1,4]],
+    ["mongo","act","`AppUser` kaydedilir.",[5]],
+    ["service","act","`convertAndSend(\"user.registered\", \"kullanici kaydoldu\", MailUsername)`, `message_id` = UUID. Beklemez.",[8]],
+    ["exchange","act","Direct exchange: routing key eşleşen binding → `mail-queue`.",[8]],
+    ["queue","act","Mesaj `Ready`.",[8]],
+    ["browser","pass","200. Mail henüz yok.",[8], "asenkron — kullanıcı cevabı aldı, gerisi arka planda"],
+    ["queue","act","Consumer'a teslim → `Unacked` (prefetch 250, ack bekleniyor).",[8]],
+    ["consumer","act","JSON → `MailUsername`. `__TypeId__` beyaz listesi: sadece `mailUsername` kabul edilir.",[8]],
+    ["redis","act","`hasKey(message_id)` → yok, ilk kez işleniyor.",[5,8]],
+    ["consumer","pass","Adres kontrolü (`null` / `@` yok) geçti → `SimpleMailMessage`.",[8]],
+    ["mailpit","act","SMTP `250`: sorumluluk devri, teslimat garantisi değil. `localhost:8025`'te görünür.",[8]],
+    ["redis","act","`set(message_id, \"mailSent\", 1 gün)`",[5,8]],
+    ["consumer","act","Metot döndü → container ACK gönderir.",[8]],
+    ["queue","pass","Mesaj silinir.",[8]]
+   ],
+   resp:{status:200, text:"OK", body:{message:"Register Successfull!"}}
+  },
+  {id:"reginvalid", m:"POST", p:"/register", d:"geçersiz mail", title:"Geçersiz mail adresiyle kayıt",
+   intro:"Hata ne kadar erken yakalanırsa o kadar ucuz: kullanıcı 400 alıp düzeltebilir. Kuyrukta yakalansa kimseye söylenemezdi.",
+   steps:[
+    ["browser","act","`\"userMail\": \"sad2qw\"`",[1]],
+    corsOk, csrfIgnored("/register"),
+    ["ratelimit","skip","Limit yok.",[4]],
+    jwtNone, etfOpen, authzPermit("/register"),
+    ["args","stop","`@Email` ihlali → `MethodArgumentNotValidException`. Controller metodu çağrılmaz.",[6,8]],
+    ["advice","handle","Bizim handler `@Order(HIGHEST_PRECEDENCE)` ile Spring'in ProblemDetail advice'ından önce çalışır → `VALIDATION_FAILED` + alan → mesaj eşlemesi.",[6]],
+    ["browser","stop","400.",[6]]
+   ],
+   resp:{status:400, text:"Bad Request", ct:"application/problem+json", body:{type:"about:blank", title:"Bad Request", status:400, detail:"Girdi dogrulamasi basarisiz", instance:"/register", code:"VALIDATION_FAILED", errors:{userMail:"must be a well-formed email address"}}}
+  },
+  {id:"regexists", m:"POST", p:"/register", d:"kullanıcı zaten var", title:"Aynı kullanıcı adıyla ikinci kayıt",
+   intro:"İş kuralı ihlali: aşçının kararı.",
+   steps:[
+    corsOk, csrfIgnored("/register"), jwtNone, authzPermit("/register"),
+    ["args","pass","DTO geçerli.",[1]],
+    ["controller","act","`register(...)`",[1]],
+    ["service","act","Kullanıcı var mı?",[1]],
+    ["repo","act","`findByUsername` → dolu.",[5]],
+    ["mongo","act","Kullanıcı var.",[5]],
+    ["service","stop","`CustomException(409, \"This user is already exist!\", USER_EXISTS)`. Event yayınlanmaz, mail gitmez.",[6]],
+    ["advice","handle","ProblemDetail + `code`.",[6]],
+    ["browser","stop","409 Conflict.",[6]]
+   ],
+   resp:{status:409, text:"Conflict", ct:"application/problem+json", body:{type:"about:blank", title:"Conflict", status:409, detail:"This user is already exist!", instance:"/register", code:"USER_EXISTS"}}
+  },
+  {id:"mailpitdown", m:"POST", p:"/register", d:"Mailpit kapalı", title:"Mail sunucusu çökmüşken kayıt",
+   intro:"Kullanıcı hiçbir şey fark etmiyor. Asenkronluğun bütün amacı bu. Kayıt kısmı kısaltıldı (tamamı: POST /register · mail gidiyor), odak arka planda: retry, sonra DLQ.",
+   steps:[
+    ["browser","act","Normal kayıt isteği.",[8]],
+    ["args","pass","Validation geçti.",[1]],
+    ["mongo","act","`AppUser` kaydedildi.",[5]],
+    ["exchange","act","Event yayınlandı → `mail-queue`.",[8]],
+    ["browser","pass","200. Kayıt başarılı.",[8], "asenkron — kullanıcı cevabı aldı"],
+    ["queue","act","Teslim edildi → `Unacked`. Uygulama ayakta, listener çalışıyor; kapalı olan sadece Mailpit.",[8]],
+    ["consumer","act","Redis kontrolü ve adres kontrolü geçti → `send(...)`",[8]],
+    ["mailpit","stop","Bağlantı reddedildi → `MailSendException`.",[8]],
+    ["consumer","handle","Retry (uygulama içinde): 5 sn arayla toplam 4 deneme (`max-attempts=3` okunmuyor, M4-f). Bu sürede tek consumer thread'i bloke → arkadaki mesajlar bekler (M7).",[8]],
+    ["consumer","handle","Denemeler bitti → `OwnRecoverer`: ERROR log (cause zinciriyle) + `AmqpRejectAndDontRequeueException` → reject, requeue yok. Retry kapalı olsaydı sonsuz requeue döngüsü olurdu.",[8]],
+    ["queue","handle","`x-dead-letter-exchange = message.rejected` → mesaj oraya devredilir. Bu argüman olmasaydı mesaj sessizce silinirdi.",[8]],
+    ["dlq","act","Fanout → `garbage-queue`. `x-death` künyesinde `count: 1` var (retry'ları broker hiç görmedi). Tüketilmez; replay bir karar olduğu için elle yapılır.",[8]]
+   ],
+   resp:{status:200, text:"OK", body:{message:"Register Successfull!"}},
+   note:"<b>Kullanıcı:</b> 200 aldı, mail gelmedi. <b>Mesaj:</b> `garbage-queue`'da `x-death` ile bekliyor. Mailpit düzelince elle yeniden yayınlanır."
+  },
+  {id:"redeliver", m:"AMQP", p:"mail-queue", d:"aynı mesaj ikinci kez", title:"Aynı mesaj tekrar teslim edilirse",
+   intro:"Mail gitti, Redis'e yazıldı, ama ACK gitmeden uygulama öldü. Broker mailin gittiğini bilmiyor.",
+   steps:[
+    ["consumer","act","`send` başarılı.",[8]],
+    ["mailpit","act","1. mail teslim edildi.",[8]],
+    ["redis","act","`set(message_id, \"mailSent\")`",[5,8]],
+    ["consumer","stop","ACK gitmeden process öldü (`kill` / 137).",[8]],
+    ["queue","handle","Bağlantı koptu → `Unacked` → `Ready`. Bunu tetikleyen bağlantının kopması, bitmemiş iş değil.",[8], "uygulama yeniden kalkar"],
+    ["consumer","act","Aynı mesaj, aynı `message_id` geldi.",[8]],
+    ["redis","act","`hasKey(message_id)` = true.",[5,8]],
+    ["consumer","pass","\"Bu mesaj zaten gonderildi\" → `return` → ACK. İkinci mail yok: idempotency.",[8]],
+    ["queue","pass","Mesaj silinir.",[8]]
+   ],
+   resp:null,
+   note:"<b>Kapanmayan pencere (M9):</b> çökme `send` ile Redis `set` arasında olursa Redis'te kayıt yoktur → 2 mail. Düz SMTP'de bunu kapatan bir araç yok, bu yüzden <b>at-least-once</b> kabul edildi: hoş geldin maili için nadiren 2 mail sorun değil."
+  }
+ ]}
+];
+
+const SECTIONS = [
+ {n:1, t:"İskelet", sorun:"Her şey tek pakette, her sınıf her işe karışıyordu.", cozum:"Controller (garson) HTTP'yi okur, Service (aşçı) karar verir, Repository (depocu) DB ile konuşur. Dışarıyla DTO üzerinden konuşulur.", neden:"Entity DB'nin şekli, DTO API sözleşmesi. Ayrı olunca alan sızmaz, DB değişince API kırılmaz. Service HTTP'yi bilmez.", rule:"Mongo'ya geçişte service ve controller'da tek satır değişmedi: ayrımın kanıtı.", go:["mynotes","postnote"]},
+ {n:2, t:"Kapıdaki görevli", sorun:"Her endpoint'e \"kim bu, girebilir mi\" kodu yazmak hem tekrar hem unutulmaya açık.", cozum:"`JwtAuthenticationFilter` kimliği panoya (`SecurityContext`) yazar ya da boş bırakır, isteği hiçbir durumda reddetmez. Kararı `authorizeHttpRequests` verir.", neden:"Authentication (kimsin) filter'da, authorization (girebilir misin) tek merkezde. Sahiplik (\"bu veri senin mi\") ise service'te.", rule:"Panoyu doldurmak ile isteği ilerletmek iki ayrı karar.", go:["expired","idor"]},
+ {n:3, t:"JWT'nin yaşam döngüsü", sorun:"Tek token ya güvensiz ya kullanışsız. Stateless JWT de iptal edilemiyor.", cozum:"Access (30 dk, her istekte) + refresh (7 gün, sadece /refresh). İkisi de httpOnly cookie'de. Redis: refresh kaydı + access blacklist.", neden:"localStorage XSS ile gerçekten çalındı. Redis \"iptal listesini hatırlamak\" için saf stateless'lıktan kontrollü bir taviz.", rule:"Kısa ömür hasarı sınırlar, Redis iptali mümkün kılar.", go:["login","refresh","logout","blacklisted"]},
+ {n:4, t:"Web güvenliği", weak:true, sorun:"Geçerli kimliği ya da geçerli girdiyi kötüye kullanan saldırılar.", cozum:"CSRF: SameSite=Strict + Double Submit. IDOR: service'te sahiplik if'i. Brute force: Redis'te token bucket. NoSQLi: DTO'da `String` tip.", neden:"Her savunma, saldırının kırdığı varsayımın olduğu katmana konur.", rule:"`XSRF-TOKEN` httpOnly DEĞİL: bizim JS okuyabiliyor, saldırganınki SOP yüzünden okuyamıyor. Koruma bu farktan geliyor.", go:["csrf","idor","ratelimit","nosql"]},
+ {n:5, t:"Veri", sorun:"Notes H2'deydi ve H2 bellekte kuruluyordu. Restart'ta her şey gidiyordu.", cozum:"Tüm kalıcı veri Mongo'da. Redis: kendiliğinden ölmesi gereken her şey (TTL).", neden:"Ayrım kalıcılık değil TTL ihtiyacı. Redis ayrıca birden çok app kopyası için ortak hafıza.", rule:"Sayaç bellekte olsaydı 3 kopya = 15 deneme.", go:["login","register"]},
+ {n:6, t:"Hata yönetimi", weak:true, sorun:"Dışarıdan neredeyse her hata \"403 + boş gövde\" görünüyordu.", cozum:"`/error` permitAll, kendi entry point'imiz (401) ve handler'ımız (403), advice. Hepsi ProblemDetail + sabit `code` (ErrorCode enum'ı).", neden:"Yolu exception'ın doğduğu yer değil tipi belirler. Security hataları advice'a hiç ulaşmaz. Bu yüzden iki yer, tek şekil.", rule:"Entry point = Security katmanının \"kimlik yok\" cevabını yazan garsonu. Tanımlanmazsa varsayılanı gövdesiz 403.", go:["loginbad","expired","notfound","reginvalid"]},
+ {n:7, t:"Docker", sorun:"Mongo, Redis, RabbitMQ ve Mailpit elle kaldırılıyordu. Biri unutulursa app açılışta patlıyordu.", cozum:"docker-compose: 5 servis, healthcheck + `depends_on: service_healthy`, servis adı = host adı, multi-stage + non-root Dockerfile.", neden:"\"Başladı\" ≠ \"hazır\". Properties'te `localhost` (IDE için), konteynerde env var bunun üstüne yazar.", rule:"Redis'e volume yok: TTL'li veri. Bedeli: restart'ta blacklist gider.", go:["blacklisted"]},
+ {n:8, t:"Mesajlaşma", sorun:"Mail sunucusu yavaş ya da çökmüş olsa bile kayıt etkilenmemeli.", cozum:"RabbitMQ: register event yayınlar ve beklemez. Consumer maili gönderir. Retry → DLQ, `@Email` ile kapıda eleme, Redis ile idempotency.", neden:"Requeue döngüsü sonsuzdu; retry sayar, DLQ parkeder. ACK mail gittikten sonra gider, arada çökme olursa tekrar gelir.", rule:"At-least-once kabul edildi: send ↔ Redis penceresi düz SMTP ile kapanmıyor.", go:["register","mailpitdown","redeliver"]}
+];
+
+/* yardımcılar */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const fmt = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const fmtHtml = s => s.replace(/`([^`]+)`/g, (m,c)=>"<code>"+esc(c)+"</code>");
+const ALL = {};
+SCEN.forEach(g => g.items.forEach(s => ALL[s.id] = s));
+
+let cur = null;      // senaryo
+let stepMode = false;
+let idx = 0;         // adım modunda aktif adım
+
+function load(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
+function save(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+
+/* senaryo listesi */
+function renderScen(){
+  const nav = $("#scen");
+  nav.innerHTML = SCEN.map(g => `
+    <div class="sgroup"><div class="label">${esc(g.group)}</div>
+      <div class="list">${g.items.map(s => `
+        <button class="sbtn" type="button" id="sb-${s.id}" data-id="${s.id}" aria-pressed="false">
+          <span class="m"><span class="meth ${s.m}">${s.m}</span> ${esc(s.p)}</span>
+          <span class="d">${esc(s.d)}</span>
+        </button>`).join("")}
+      </div></div>`).join("");
+  nav.addEventListener("click", e => {
+    const b = e.target.closest(".sbtn"); if (!b) return;
+    select(b.dataset.id);
+  });
+}
+
+/* pipeline */
+function renderPipe(){
+  $("#pipe").innerHTML = ZONES.map(z => `
+    <div class="zone" style="--zone:var(${z.tint})">
+      <header><h3>${esc(z.name)}</h3><small>${esc(z.sub)}</small></header>
+      ${z.stations.map(id => `
+        <div class="st" id="st-${id}" data-state="none">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="nm">${esc(ST[id].name)}</span>
+          <span class="nums"></span>
+          <span class="cl">${esc(ST[id].cls)}</span>
+        </div>`).join("")}
+    </div>`).join("");
+  $("#pipe").addEventListener("click", e => {
+    const b = e.target.closest(".nums b"); if (!b) return;
+    goStep(+b.dataset.i);
+  });
+}
+
+function limit(){ return stepMode ? idx : cur.steps.length - 1; }
+
+function paintPipe(){
+  const lim = limit();
+  Object.keys(ST).forEach(id => {
+    const el = $("#st-"+id);
+    let state = "none"; const nums = [];
+    cur.steps.forEach((s,i) => {
+      if (s[0] !== id) return;
+      if (i <= lim){ state = s[1]; }
+      nums.push(i);
+    });
+    el.dataset.state = state;
+    el.classList.toggle("current", stepMode && cur.steps[idx] && cur.steps[idx][0] === id);
+    el.querySelector(".nums").innerHTML = nums.map(i =>
+      `<b data-i="${i}" class="${stepMode && i===idx ? "cur":""}" style="${i>lim?"opacity:.35":""}" title="Adım ${i+1}">${i+1}</b>`).join("");
+  });
+}
+
+/* detay */
+function renderDetail(){
+  const s = cur, lim = limit();
+  const stepsHtml = s.steps.map((st,i) => {
+    const fut = stepMode && i > idx ? " future" : "";
+    const div = st[4] ? `<li class="divider${fut}" aria-hidden="true">⋯ ${esc(st[4])}</li>` : "";
+    return div + `<li class="step${stepMode && i===idx ? " current":""}${fut}" data-state="${st[1]}" data-i="${i}">
+      <span class="n">${i+1}</span>
+      <span class="where">${esc(ST[st[0]].name)}</span>
+      <span class="txt">${fmt(st[2])}</span>
+      ${st[3] && st[3].length ? `<span class="tags">${st[3].map(n=>`<button type="button" class="tag" data-sec="${n}">[${n}] ${esc(SECTIONS[n-1].t)}</button>`).join("")}</span>` : ""}
+    </li>`;
+  }).join("");
+
+  let respHtml = "";
+  if (s.resp){
+    const r = s.resp, cls = "s"+String(r.status)[0];
+    const showResp = !stepMode || idx === s.steps.length - 1 || lim >= lastBrowser(s);
+    respHtml = `<div class="resp" style="${showResp?"":"opacity:.3"}">
+      <div class="label">Tarayıcıya dönen cevap</div>
+      <div class="status"><span class="pill ${cls}">${r.status}</span>${esc(r.text)}${r.ct?` <span class="hdrs">· ${esc(r.ct)}</span>`:""}</div>
+      ${r.headers ? `<div class="hdrs">${esc(r.headers).replace(/\n/g,"<br>")}</div>` : ""}
+      ${r.body === null ? `<div class="hdrs">(gövde yok)</div>` : `<pre class="json">${esc(JSON.stringify(r.body,null,2))}</pre>`}
+    </div>`;
+  }
+
+  $("#detail").innerHTML = `
+    <div>
+      <div class="reqline"><span class="meth ${s.m}">${s.m}</span> ${esc(s.p)}</div>
+      <h2>${esc(s.title)}</h2>
+    </div>
+    <p class="intro">${fmt(s.intro)}</p>
+    <div class="controls">
+      <button class="btn ${stepMode?"":"primary"}" type="button" id="b-mode">${stepMode ? "Tümünü göster" : "Adım adım"}</button>
+      <button class="btn" type="button" id="b-prev" ${!stepMode||idx===0?"disabled":""}>← Önceki</button>
+      <button class="btn" type="button" id="b-next" ${!stepMode||idx===s.steps.length-1?"disabled":""}>Sonraki →</button>
+      <span class="counter">${stepMode ? (idx+1)+" / "+s.steps.length : s.steps.length+" adım"}</span>
+    </div>
+    <ol class="steps">${stepsHtml}</ol>
+    ${s.note ? `<div class="note">${fmtHtml(s.note)}</div>` : ""}
+    ${respHtml}`;
+
+  $("#b-mode").onclick = () => { stepMode = !stepMode; idx = 0; paint(); };
+  $("#b-prev").onclick = () => goStep(idx-1);
+  $("#b-next").onclick = () => goStep(idx+1);
+  $("#detail .steps").onclick = e => {
+    const t = e.target.closest(".tag");
+    if (t){ jumpSection(+t.dataset.sec); return; }
+    const li = e.target.closest(".step"); if (!li) return;
+    stepMode = true; goStep(+li.dataset.i);
+  };
+  if (stepMode){
+    const c = $("#detail .step.current");
+    if (c && c.scrollIntoView) c.scrollIntoView({block:"nearest"});
+  }
+}
+function lastBrowser(s){ let k = s.steps.length-1; s.steps.forEach((st,i)=>{ if(st[0]==="browser" && i>0) k = Math.min(k, i); }); return k; }
+
+function paint(){ paintPipe(); renderDetail(); }
+function goStep(i){
+  if (!cur) return;
+  i = Math.max(0, Math.min(cur.steps.length-1, i));
+  stepMode = true; idx = i; paint();
+}
+function select(id){
+  if (!ALL[id]) id = "mynotes";
+  cur = ALL[id]; idx = 0;
+  document.querySelectorAll(".sbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id ? "true" : "false"));
+  save("spboot-scen", id);
+  paint();
+}
+
+/* bölüm kartları */
+function renderCards(){
+  $("#cards").innerHTML = SECTIONS.map(s => `
+    <article class="card" id="sec-${s.n}">
+      <div class="hd"><span class="no">[${s.n}]</span><h3>${esc(s.t)}</h3>${s.weak?`<span class="weak">tekrar et</span>`:""}</div>
+      <dl>
+        <dt>Sorun</dt><dd>${fmt(s.sorun)}</dd>
+        <dt>Çözüm</dt><dd>${fmt(s.cozum)}</dd>
+        <dt>Neden</dt><dd>${fmt(s.neden)}</dd>
+      </dl>
+      <div class="rule">${fmt(s.rule)}</div>
+      <div class="go">${s.go.map(id => `<button type="button" class="tag" data-go="${id}"><span class="meth ${ALL[id].m}">${ALL[id].m}</span>&nbsp;${esc(ALL[id].p)} · ${esc(ALL[id].d)}</button>`).join("")}</div>
+    </article>`).join("");
+  $("#cards").addEventListener("click", e => {
+    const b = e.target.closest("[data-go]"); if (!b) return;
+    stepMode = false; select(b.dataset.go);
+    $(".layout").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  });
+}
+function jumpSection(n){
+  const el = $("#sec-"+n); if (!el) return;
+  el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"), 1400);
+}
+
+document.addEventListener("keydown", e => {
+  if (!cur || e.target.closest("input,textarea")) return;
+  if (e.key === "ArrowRight"){ e.preventDefault(); goStep(stepMode ? idx+1 : 0); }
+  else if (e.key === "ArrowLeft" && stepMode){ e.preventDefault(); goStep(idx-1); }
+  else if (e.key === "Escape" && stepMode){ stepMode = false; paint(); }
+});
+
+renderScen(); renderPipe(); renderCards();
+select(load("spboot-scen","mynotes"));
+})();
+</script>
+</body>
+</html>

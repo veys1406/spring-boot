@@ -7,13 +7,17 @@ import com.example.spboot.dto.MessageResponse;
 import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
 import com.example.spboot.exception.ErrorCode;
+import com.example.spboot.rabbitmq.MailConsumer;
 import com.example.spboot.repository.AppUserRepository;
 import com.example.spboot.service.JwtService.TokenStatus;
+import com.rabbitmq.client.GetResponse;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -37,6 +41,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AppUserRepository userRepository;
     private final RabbitTemplate rabbitTemplate;
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     public AuthService( AuthenticationManager authenticationManager,
                         JwtService jwtService,
@@ -132,6 +138,16 @@ public class AuthService {
 
     public AppUserResponse me(Authentication authentication){
         return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
+    }
+
+    public void replay(){
+        rabbitTemplate.execute(channel -> {
+            GetResponse response = channel.basicGet("garbage-queue", false);
+            channel.basicPublish("user.registered", "kullanici kaydoldu", response.getProps(), response.getBody());
+            channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+            log.info("{}", response);
+            return null;
+        });
     }
 
 }
