@@ -140,9 +140,11 @@ public class AuthService {
         return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
     }
 
-    public void replay(){
-        rabbitTemplate.execute(channel -> {
+    public MessageResponse replay(){
+        return rabbitTemplate.execute(channel -> {
             GetResponse response = channel.basicGet("garbage-queue", false);
+
+            if(response == null) return new MessageResponse("Replay edilecek mesaj yok");
 
             Map<String, Object> headers = response.getProps().getHeaders();
             List<Map<String, Object>> xDeath = (List<Map<String, Object>>) headers.get("x-death");

@@ -116,9 +116,7 @@ public class AuthController {
     } 
 
     @GetMapping("/replay")
-    public void replay(){
-        authService.replay();
+    public MessageResponse replay(){
+        return authService.replay();
     }
-
-
 }
