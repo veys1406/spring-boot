@@ -47,7 +47,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())
                 .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register","/error","/logout").permitAll()
-                                                                        .anyRequest().authenticated())
+
+                                                    .requestMatchers("/replay").hasRole("ADMIN")
+                                                    
+                                                    .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// once jwtnin sirasinin bilinmesi lazim
                 .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
