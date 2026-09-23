@@ -140,33 +140,41 @@ public class AuthService {
         return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
     }
 
-    public MessageResponse replay(){
+    public MessageResponse replay(int messageCount){
+        int safeLimit = Math.min(messageCount, 100);
+
         return rabbitTemplate.execute(channel -> {
-            GetResponse response = channel.basicGet("garbage-queue", false);
+            int replayed = 0;
 
-            if(response == null) return new MessageResponse("Replay edilecek mesaj yok");
+            for(int i=0; i<safeLimit; i++){
+                GetResponse response = channel.basicGet("garbage-queue", false);
 
-            Map<String, Object> headers = response.getProps().getHeaders();
-            List<Map<String, Object>> xDeath = (List<Map<String, Object>>) headers.get("x-death");
-            Map<String, Object> lastDeath = xDeath.get(0);
+                if(response == null) break;
 
-            String exchange = lastDeath.get("exchange").toString();
-            String routingKey = ((List<?>) lastDeath.get("routing-keys")).get(0).toString();
+                Map<String, Object> headers = response.getProps().getHeaders();
+                List<Map<String, Object>> xDeath = (List<Map<String, Object>>) headers.get("x-death");
+                Map<String, Object> lastDeath = xDeath.get(0);
 
-            Map<String, Object> newHeaders = new HashMap<>(headers);
-            Object oldCount = newHeaders.get("x-replay-count");
-            int replayCount = (oldCount == null) ? 0 : ((Number) oldCount).intValue();
+                String exchange = lastDeath.get("exchange").toString();
+                String routingKey = ((List<?>) lastDeath.get("routing-keys")).get(0).toString();
 
-            newHeaders.put("x-replay-count", replayCount + 1);
+                Map<String, Object> newHeaders = new HashMap<>(headers);
+                Object oldCount = newHeaders.get("x-replay-count");
+                int replayCount = (oldCount == null) ? 0 : ((Number) oldCount).intValue();
 
-            AMQP.BasicProperties newProps = response.getProps().builder()
-            .headers(newHeaders)
-            .build();
-            
-            channel.basicPublish(exchange, routingKey, newProps, response.getBody());
-            channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
-            log.info("{}", response);
-            return null; 
+                newHeaders.put("x-replay-count", replayCount + 1);
+
+                AMQP.BasicProperties newProps = response.getProps().builder()
+                .headers(newHeaders)
+                .build();
+                
+                channel.basicPublish(exchange, routingKey, newProps, response.getBody());
+                channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+                log.info("{}", response);
+                replayed++;
+            }
+
+            return new MessageResponse(replayed + " mesaj replay edildi");
         });
     }
 
