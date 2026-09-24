@@ -25,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration; 
 import java.util.Date;
 import java.util.HashMap;
@@ -152,11 +153,21 @@ public class AuthService {
                 if(response == null) break;
 
                 Map<String, Object> headers = response.getProps().getHeaders();
-                List<Map<String, Object>> xDeath = (List<Map<String, Object>>) headers.get("x-death");
-                Map<String, Object> lastDeath = xDeath.get(0);
+                Object xOriginalExchange = headers.get("x-original-exchange");
+                Object xOriginalRoutingKey = headers.get("x-original-routingKey");
 
-                String exchange = lastDeath.get("exchange").toString();
-                String routingKey = ((List<?>) lastDeath.get("routing-keys")).get(0).toString();
+                if(xOriginalExchange == null || xOriginalRoutingKey == null){
+
+                    log.warn("{} id'li mesaj x-original header'lari olmadigi icin silindi. Payload: {}",
+                    response.getProps().getMessageId(),
+                    new String(response.getBody(), StandardCharsets.UTF_8));
+
+                    channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+                    continue;
+                }
+
+                String exchange = xOriginalExchange.toString();
+                String routingKey = xOriginalRoutingKey.toString();
 
                 Map<String, Object> newHeaders = new HashMap<>(headers);
                 Object oldCount = newHeaders.get("x-replay-count");
