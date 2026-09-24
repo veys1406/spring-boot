@@ -165,13 +165,30 @@ public class AuthService {
                     channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
                     continue;
                 }
+                
 
                 String exchange = xOriginalExchange.toString();
                 String routingKey = xOriginalRoutingKey.toString();
 
                 Map<String, Object> newHeaders = new HashMap<>(headers);
                 Object oldCount = newHeaders.get("x-replay-count");
+
                 int replayCount = (oldCount == null) ? 0 : ((Number) oldCount).intValue();
+                if(replayCount >= 3){
+                    channel.basicPublish("replay.exceeded", "", response.getProps(), response.getBody());
+                    channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+                    continue;
+                }
+
+                String exceptionMessage = headers.get("x-exception-message").toString();
+                if(exceptionMessage.contains("Gecersiz mail!") || exceptionMessage.contains("Failed to convert Message content")){
+                    log.warn("{} id'li mesaj poison oldugu icin silindi. Sebep: {} Payload: {}",
+                        response.getProps().getMessageId(),
+                        exceptionMessage,
+                        new String(response.getBody(), StandardCharsets.UTF_8));
+                    channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+                    continue;
+                }
 
                 newHeaders.put("x-replay-count", replayCount + 1);
 
