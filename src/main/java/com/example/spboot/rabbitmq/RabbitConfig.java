@@ -73,4 +73,19 @@ public class RabbitConfig {
     public RepublishMessageRecoverer republish(AmqpTemplate errorTemplate) {
         return new RepublishMessageRecoverer(errorTemplate, "message.rejected");
     }
+
+    @Bean
+    public Queue parkinglot_queue(){
+        return new Queue("parkinglot-queue");
+    }
+
+    @Bean
+    public FanoutExchange parking_exchange(){
+        return new FanoutExchange("replay.exceeded");
+    }
+
+    @Bean
+    public Binding parking_binding(Queue parkinglot_queue, FanoutExchange parking_exchange){
+        return BindingBuilder.bind(parkinglot_queue).to(parking_exchange);
+    }
 }
