@@ -198,7 +198,7 @@ public class AuthService {
                 
                 channel.basicPublish(exchange, routingKey, newProps, response.getBody());
                 channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
-                log.info("{}", response);
+                log.info("{} id'li mesaj {}. kez basariyla replay edildi.", response.getProps().getMessageId(), (replayCount + 1) );
                 replayed++;
             }
 

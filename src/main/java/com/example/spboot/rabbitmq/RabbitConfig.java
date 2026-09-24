@@ -14,6 +14,7 @@ import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.NestedExceptionUtils;
 
 import com.example.spboot.dto.MailUsername;
 
@@ -71,7 +72,12 @@ public class RabbitConfig {
 
     @Bean
     public RepublishMessageRecoverer republish(AmqpTemplate errorTemplate) {
-        return new RepublishMessageRecoverer(errorTemplate, "message.rejected");
+        return new RepublishMessageRecoverer(errorTemplate, "message.rejected"){
+            @Override
+            protected String getStackTraceAsString(Throwable cause) {
+                return NestedExceptionUtils.getMostSpecificCause(cause).toString();
+            }
+        };
     }
 
     @Bean
