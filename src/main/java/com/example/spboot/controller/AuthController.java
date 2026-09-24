@@ -117,7 +117,7 @@ public class AuthController {
         // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
     } 
 
-    @GetMapping("/replay")
+    @GetMapping("/replay")//bilerek get birakildi normalde post olmasi lazim csrf token icin
     public MessageResponse replay(@RequestParam(defaultValue = "10") int limit){
         return authService.replay(limit);
     }

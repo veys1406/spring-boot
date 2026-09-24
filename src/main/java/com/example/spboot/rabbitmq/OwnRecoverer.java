@@ -1,4 +1,4 @@
-package com.example.spboot.rabbitmq;
+/*package com.example.spboot.rabbitmq;
 
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
@@ -17,4 +17,4 @@ public class OwnRecoverer implements MessageRecoverer {
         throw new AmqpRejectAndDontRequeueException(throwable);
     } 
 
-}
+}*/
