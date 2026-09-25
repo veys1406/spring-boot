@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/login", "/register"))
 
                 .authorizeHttpRequests(auth->auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())
-                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/refresh","/register","/error","/logout").permitAll()
+                .authorizeHttpRequests(auth->auth.requestMatchers("/login","/auth/refresh","/register","/error","/auth/logout").permitAll()
 
                                                     .requestMatchers("/replay").hasRole("ADMIN")
                                                     

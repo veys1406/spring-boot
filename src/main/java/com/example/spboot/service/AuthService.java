@@ -44,6 +44,7 @@ public class AuthService {
     private final RabbitTemplate rabbitTemplate;
     
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    
 
     public AuthService( AuthenticationManager authenticationManager,
                         JwtService jwtService,
@@ -62,6 +63,7 @@ public class AuthService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+
     public LoginResponse login(String username, String password){
         Authentication authed = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username,password)
@@ -79,6 +81,7 @@ public class AuthService {
         redisTemplate.opsForValue().set( refreshToken, authed.getName(), Duration.ofDays(7));
         return new LoginResponse(accessToken, refreshToken);
     }
+
 
     public String refresh(String token){
         if  ( jwtService.tokenStatus(token) == JwtService.TokenStatus.VALID ){
@@ -102,6 +105,7 @@ public class AuthService {
         throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token", ErrorCode.INVALID_REFRESH_TOKEN);
     }
 
+
     public MessageResponse register(String username,String userMail, String password) {
         if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
             AppUser appUser = new AppUser();
@@ -122,6 +126,7 @@ public class AuthService {
         return new MessageResponse("Register Successfull!");
     }
 
+
     public MessageResponse logout(String accessToken, String refreshToken){
 
         if(accessToken != null && jwtService.tokenStatus(accessToken) == JwtService.TokenStatus.VALID){
@@ -137,9 +142,11 @@ public class AuthService {
         return new MessageResponse("Çıkış Başarılı");
     }
 
+
     public AppUserResponse me(Authentication authentication){
         return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
     }
+
 
     public MessageResponse replay(int messageCount){
         int safeLimit = Math.min(messageCount, 100);

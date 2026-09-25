@@ -49,7 +49,7 @@ public class AuthController {
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", loginResponse.getRefreshToken())
                 .httpOnly(true)
-                .path("/refresh")// sadece refresh endpointine eklenir bu coookie otomatik
+                .path("/auth")// sadece auth endpointine ve altindakilere eklenir bu coookie otomatik
                 .maxAge(Duration.ofDays(7))
                 .sameSite("Strict")
                 .build();
@@ -58,7 +58,7 @@ public class AuthController {
         return new MessageResponse("Giriş Başarılı");
     }
 
-    @PostMapping("/logout")//
+    @PostMapping("/auth/logout")
     public MessageResponse logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
 
         Cookie[] cookies = request.getCookies();
@@ -77,7 +77,7 @@ public class AuthController {
         return authService.logout(accessToken,refreshToken);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/auth/refresh")
     public MessageResponse refresh(HttpServletRequest request, HttpServletResponse response){
 
         Cookie[] cookies = request.getCookies();
