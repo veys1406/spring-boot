@@ -18,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
@@ -130,9 +129,5 @@ public class AuthController {
         return csrfToken;
         // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
     } 
-
-    @GetMapping("/replay")//bilerek get birakildi normalde post olmasi lazim csrf token icin
-    public MessageResponse replay(@RequestParam(defaultValue = "10") int limit){
-        return authService.replay(limit);
-    }
+    
 }
