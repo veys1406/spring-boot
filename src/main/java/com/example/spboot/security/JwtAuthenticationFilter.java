@@ -59,8 +59,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         else if(tokenStatus == JwtService.TokenStatus.VALID ){
             Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
-            if(isBlacklisted == null || !isBlacklisted){
-                Claims claims = jwtService.parseClaims(token);
+
+            Claims claims = jwtService.parseClaims(token);
+            boolean isAccessToken = "access".equals(jwtService.extractType(claims));
+            if(isAccessToken && (isBlacklisted == null || !isBlacklisted) ){
                 UsernamePasswordAuthenticationToken authedToken = new UsernamePasswordAuthenticationToken(
                         jwtService.extractUsername(claims),
                         null,
