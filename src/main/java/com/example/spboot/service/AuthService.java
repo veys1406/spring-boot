@@ -1,5 +1,6 @@
 package com.example.spboot.service;
 
+import com.example.spboot.config.RateLimitConfig;
 import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MailUsername;
@@ -9,9 +10,12 @@ import com.example.spboot.exception.CustomException;
 import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.repository.AppUserRepository;
 
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.jsonwebtoken.Claims;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,8 +25,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.github.bucket4j.Bucket;
+
 import java.time.Duration; 
 import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -34,7 +41,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AppUserRepository userRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final ProxyManager<byte[]> proxyManager;
     
+    @Value("${ratelimit.registerMail.capacity}")
+    private int mailCapacity;
+    @Value("${ratelimit.registerMail.fillRate}")
+    private int mailFillRate;
+    @Value("${ratelimit.registerMail.window}")
+    private Duration mailWindow;
 
     public AuthService( AuthenticationManager authenticationManager,
                         JwtService jwtService,
@@ -42,7 +56,8 @@ public class AuthService {
                         UserDetailsService userDetailsService,
                         PasswordEncoder passwordEncoder,
                         AppUserRepository userRepository,
-                        RabbitTemplate rabbitTemplate) {
+                        RabbitTemplate rabbitTemplate,
+                        ProxyManager<byte[]> proxyManager) {
 
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -51,6 +66,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.proxyManager = proxyManager;
     }
 
 
@@ -98,6 +114,15 @@ public class AuthService {
 
     public MessageResponse register(String username,String userMail, String password) {
         if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
+
+            String key = "ratelimit:registerMail:" +userMail.toLowerCase(Locale.ROOT);
+            byte[] keyBytes = key.getBytes();
+            BucketConfiguration config = RateLimitConfig.configOf(mailCapacity, mailFillRate, mailWindow);
+            Bucket bucket = proxyManager.builder().build(keyBytes, () -> config);
+            if(!bucket.tryConsume(1)){
+                throw new CustomException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests", ErrorCode.RATE_LIMITED);
+            }
+
             AppUser appUser = new AppUser();
             appUser.setUsername(username);
             appUser.setUserMail(userMail);
