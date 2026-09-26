@@ -40,7 +40,7 @@ public class AuthController {
                 .httpOnly(true)
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))
-                .sameSite("Strict")// cookie attribute degistirdik. CSRF TOKEN MANTIK ANLASILDI KODA DOKULMEDI
+                .sameSite("Strict")// cookie attribute degistirdik.
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
@@ -56,7 +56,7 @@ public class AuthController {
     }
 
     @PostMapping("/auth/logout")
-    public MessageResponse logout(HttpServletRequest request){
+    public MessageResponse logout(HttpServletRequest request, HttpServletResponse response){
 
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
@@ -71,6 +71,23 @@ public class AuthController {
                 }
             }
         }
+
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
         return authService.logout(accessToken,refreshToken);
     }
 
