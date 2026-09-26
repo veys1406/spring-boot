@@ -1,5 +1,8 @@
 package com.example.spboot.config;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.Refill;
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.Bucket4jLettuce;
@@ -31,6 +34,13 @@ public class RateLimitConfig {
                         //kova doldugunda ipyi tutmamiza gerek kalmicak
                         ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(Duration.ofMinutes(1))
                 )
+                .build();
+    }
+
+    public static BucketConfiguration configOf(int capacity, int fillRate, Duration window) {
+        Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(fillRate, window));
+        return BucketConfiguration.builder()
+                .addLimit(limit)
                 .build();
     }
 

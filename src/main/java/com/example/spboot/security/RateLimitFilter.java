@@ -1,9 +1,7 @@
 package com.example.spboot.security;
 
-import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
-import io.github.bucket4j.Refill;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +15,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.spboot.config.RateLimitConfig;
 import com.example.spboot.exception.ErrorCode;
 
 import java.io.IOException;
@@ -55,11 +54,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         BucketConfiguration config;
         if(requestURI.equals("/login")){
             key = "ratelimit:loginIp:" + userIP;
-            config= configOf(loginCapacity, loginFillRate, loginWindow);
+            config= RateLimitConfig.configOf(loginCapacity, loginFillRate, loginWindow);
 
         }else if(requestURI.equals("/register")){
             key = "ratelimit:registerIp:" + userIP;
-            config= configOf(registerCapacity, registerFillRate, registerWindow);
+            config= RateLimitConfig.configOf(registerCapacity, registerFillRate, registerWindow);
 
         }else{
             filterChain.doFilter(request, response);
@@ -72,7 +71,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         boolean izinVar = bucket.tryConsume(1);
         if(!izinVar){
-            ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Cok fazla istek attiniz");
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
             problem.setProperty("code", ErrorCode.RATE_LIMITED.name());
             response.setStatus(429);
             response.setContentType("application/problem+json");
@@ -82,10 +81,5 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
-    private BucketConfiguration configOf(int capacity, int fillRate, Duration window) {
-        Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(fillRate, window));
-        return BucketConfiguration.builder()
-                .addLimit(limit)
-                .build();
-    }
+    
 }
