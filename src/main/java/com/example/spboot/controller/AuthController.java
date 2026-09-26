@@ -5,7 +5,6 @@ import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginRequest;
 import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MessageResponse;
-import com.example.spboot.dto.RefreshRequest;
 import com.example.spboot.dto.RegisterRequest;
 
 import jakarta.servlet.http.Cookie;
@@ -14,11 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,21 +56,21 @@ public class AuthController {
     }
 
     @PostMapping("/auth/logout")
-    public MessageResponse logout(HttpServletRequest request, @RequestBody(required = false) RefreshRequest body){
+    public MessageResponse logout(HttpServletRequest request){
 
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
+        String refreshToken = null;
 
         if (cookies != null) {
             for (Cookie c : cookies) {
                 if (c.getName().equals("accessToken")) {
                     accessToken = c.getValue();// tokeni cookieden aliyoruz headerdan degil
+                }else if (c.getName().equals("refreshToken")) {
+                    refreshToken = c.getValue();
                 }
             }
         }
-
-        String refreshToken = (body != null) ? body.getToken() : null;
-
         return authService.logout(accessToken,refreshToken);
     }
 
