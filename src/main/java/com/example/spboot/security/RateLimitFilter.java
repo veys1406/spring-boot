@@ -27,12 +27,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final ProxyManager<byte[]> proxyManager;
     private final ObjectMapper objectMapper;
 
-    @Value("${ratelimit.login.capacity}")
-    private int capacity;
-    @Value("${ratelimit.login.fillRate}")
-    private int fillRate;
-    @Value("${ratelimit.login.window}")
-    private Duration window;
+    @Value("${ratelimit.loginIp.capacity}")
+    private int loginCapacity;
+    @Value("${ratelimit.loginIp.fillRate}")
+    private int loginFillRate;
+    @Value("${ratelimit.loginIp.window}")
+    private Duration loginWindow;
+
+    @Value("${ratelimit.registerIp.capacity}")
+    private int registerCapacity;
+    @Value("${ratelimit.registerIp.fillRate}")
+    private int registerFillRate;
+    @Value("${ratelimit.registerIp.window}")
+    private Duration registerWindow;
 
     public RateLimitFilter(ProxyManager<byte[]> proxyManager, ObjectMapper objectMapper) {
         this.proxyManager = proxyManager;
@@ -42,29 +49,43 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        if(!request.getRequestURI().equals("/login")){
-            filterChain.doFilter(request, response);
+        String requestURI = request.getRequestURI();
+        String userIP = request.getRemoteAddr();
+        String key;
+        BucketConfiguration config;
+        if(requestURI.equals("/login")){
+            key = "ratelimit:loginIp:" + userIP;
+            config= configOf(loginCapacity, loginFillRate, loginWindow);
+
+        }else if(requestURI.equals("/register")){
+            key = "ratelimit:registerIp:" + userIP;
+            config= configOf(registerCapacity, registerFillRate, registerWindow);
+
         }else{
-            String userIP = request.getRemoteAddr();
-            String key = "ratelimit:login:" + userIP;
-            byte[] keyBytes = key.getBytes();
-
-            Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(fillRate,window));
-            BucketConfiguration config = BucketConfiguration.builder()
-                    .addLimit(limit)
-                    .build();
-            Bucket bucket = proxyManager.builder().build(keyBytes, () -> config);
-
-            boolean izinVar = bucket.tryConsume(1);
-            if(!izinVar){
-                ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Cok fazla istek attiniz");
-                problem.setProperty("code", ErrorCode.RATE_LIMITED.name());
-                response.setStatus(429);
-                response.setContentType("application/problem+json");
-                objectMapper.writeValue(response.getWriter(), problem);
-            }else{
-                filterChain.doFilter(request, response);
-            }
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        //login ve registerda ortak 
+        byte[] keyBytes = key.getBytes();
+        Bucket bucket = proxyManager.builder().build(keyBytes, () -> config);
+
+        boolean izinVar = bucket.tryConsume(1);
+        if(!izinVar){
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Cok fazla istek attiniz");
+            problem.setProperty("code", ErrorCode.RATE_LIMITED.name());
+            response.setStatus(429);
+            response.setContentType("application/problem+json");
+            objectMapper.writeValue(response.getWriter(), problem);
+        }else{
+            filterChain.doFilter(request, response);
+        }
+    }
+
+    private BucketConfiguration configOf(int capacity, int fillRate, Duration window) {
+        Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(fillRate, window));
+        return BucketConfiguration.builder()
+                .addLimit(limit)
+                .build();
     }
 }
