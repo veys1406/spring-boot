@@ -58,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute("authError", ErrorCode.TOKEN_EXPIRED);
         }
         else if(tokenStatus == JwtService.TokenStatus.VALID ){
-            Boolean isBlacklisted = redisTemplate.hasKey(token);// null donebilir o yuzden Boolean
+            Boolean isBlacklisted = redisTemplate.hasKey(RedisKeys.BLACKLIST_PREFIX+token);// null donebilir o yuzden Boolean
 
             Claims claims = jwtService.parseClaims(token);
             boolean isAccessToken = "access".equals(jwtService.extractType(claims));

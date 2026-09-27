@@ -9,6 +9,7 @@ import com.example.spboot.entity.AppUser;
 import com.example.spboot.exception.CustomException;
 import com.example.spboot.exception.ErrorCode;
 import com.example.spboot.repository.AppUserRepository;
+import com.example.spboot.security.RedisKeys;
 
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
@@ -84,7 +85,7 @@ public class AuthService {
                 authed.getName()
         );
 
-        redisTemplate.opsForValue().set( refreshToken, authed.getName(), Duration.ofDays(7));
+        redisTemplate.opsForValue().set(RedisKeys.REFRESH_PREFIX+refreshToken, authed.getName(), Duration.ofDays(7));
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -94,13 +95,13 @@ public class AuthService {
 
             Claims claim = jwtService.parseClaims(token);
             if(     jwtService.extractType(claim).equals("refresh") &&
-                    redisTemplate.hasKey(token)){
+                    redisTemplate.hasKey(RedisKeys.REFRESH_PREFIX+token)){
 
                 String username = jwtService.extractUsername(claim);
                 String role = userDetailsService.loadUserByUsername(username).getAuthorities().iterator().next().getAuthority();
                 // userDetailsService den kullanicinin rol bilgilerini cekiyor
 
-                String storedUsername = (String) redisTemplate.opsForValue().get(token);
+                String storedUsername = (String) redisTemplate.opsForValue().get(RedisKeys.REFRESH_PREFIX+token);
                 if(!username.equals(storedUsername)){
                     throw new CustomException(HttpStatus.UNAUTHORIZED,"Invalid Refresh Token", ErrorCode.INVALID_REFRESH_TOKEN);
                 }
@@ -148,11 +149,11 @@ public class AuthService {
             Claims claim = jwtService.parseClaims(accessToken);
             Date exp = jwtService.extractExp(claim);
             long kalanSure = exp.getTime() - System.currentTimeMillis(); // expiration zamanindan suanki zamani cikarttik
-            redisTemplate.opsForValue().set(accessToken, "blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
+            redisTemplate.opsForValue().set(RedisKeys.BLACKLIST_PREFIX+accessToken, "blacklisted", Duration.ofMillis(kalanSure));// Duration turunden olmak zorundaymisiz set methodu icin
         }
 
         if(refreshToken != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
-            redisTemplate.delete(refreshToken);
+            redisTemplate.delete(RedisKeys.REFRESH_PREFIX+refreshToken);
         } 
         return new MessageResponse("Çıkış Başarılı");
     }
