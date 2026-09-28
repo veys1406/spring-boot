@@ -28,7 +28,8 @@ import org.springframework.stereotype.Service;
 
 import io.github.bucket4j.Bucket;
 
-import java.time.Duration; 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -173,12 +174,17 @@ public class AuthService {
     }
 
     public MessageResponse logoutAll(Authentication authentication){
-        String key = RedisKeys.SESSIONS_PREFIX + authentication.getName();
-        Set<Object> tokens = redisTemplate.opsForSet().members(key);
+        String username = authentication.getName();
+        String sessionKey = RedisKeys.SESSIONS_PREFIX + username;
+        Set<Object> tokens = redisTemplate.opsForSet().members(sessionKey);
         for (Object t : tokens){
             redisTemplate.delete(RedisKeys.REFRESH_PREFIX + t);
         }
-        redisTemplate.delete(key);
+        redisTemplate.delete(sessionKey);
+        //access token icin logoutall yaptigi saati yaziyoruz redise
+        String logoutKey = RedisKeys.LOGGEDOUT_PREFIX + username;
+        redisTemplate.opsForValue().set(logoutKey, Instant.now().getEpochSecond(), Duration.ofMinutes(30));// suanki saniye
+        
         return new MessageResponse("Tüm cihazlardan çıkış yapıldı");
     }
 }
