@@ -31,6 +31,7 @@ import io.github.bucket4j.Bucket;
 import java.time.Duration; 
 import java.util.Date;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -171,4 +172,13 @@ public class AuthService {
         return new AppUserResponse(authentication.getName(), authentication.getAuthorities().iterator().next().getAuthority());
     }
 
+    public MessageResponse logoutAll(Authentication authentication){
+        String key = RedisKeys.SESSIONS_PREFIX + authentication.getName();
+        Set<Object> tokens = redisTemplate.opsForSet().members(key);
+        for (Object t : tokens){
+            redisTemplate.delete(RedisKeys.REFRESH_PREFIX + t);
+        }
+        redisTemplate.delete(key);
+        return new MessageResponse("Tüm cihazlardan çıkış yapıldı");
+    }
 }

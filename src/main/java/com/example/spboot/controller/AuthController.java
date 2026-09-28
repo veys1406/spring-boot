@@ -130,4 +130,24 @@ public class AuthController {
         // bir sey yapmasına gerk yok spring parametreyi mecbur dolduracak. SecurityConfigdeki csrf deposu tetiklencek
     } 
     
+    @PostMapping("/logout-all")
+    public MessageResponse logoutAll(Authentication authentication, HttpServletResponse response){
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        
+        return authService.logoutAll(authentication);
+    }
 }
