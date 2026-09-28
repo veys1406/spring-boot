@@ -86,6 +86,11 @@ public class AuthService {
         );
 
         redisTemplate.opsForValue().set(RedisKeys.REFRESH_PREFIX+refreshToken, authed.getName(), Duration.ofDays(7));
+
+        String key = RedisKeys.SESSIONS_PREFIX + authed.getName();
+        redisTemplate.opsForSet().add(key, refreshToken);
+        redisTemplate.expire(key, Duration.ofDays(7));
+
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -153,7 +158,10 @@ public class AuthService {
         }
 
         if(refreshToken != null){// cikis yapinca refresh tokeni redisten siliyoz direkt
-            redisTemplate.delete(RedisKeys.REFRESH_PREFIX+refreshToken);
+            String username = (String) redisTemplate.opsForValue().getAndDelete(RedisKeys.REFRESH_PREFIX+refreshToken);
+            if(username != null){
+                redisTemplate.opsForSet().remove(RedisKeys.SESSIONS_PREFIX + username, refreshToken);
+            }
         } 
         return new MessageResponse("Çıkış Başarılı");
     }
