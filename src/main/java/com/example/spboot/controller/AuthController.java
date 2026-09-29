@@ -116,7 +116,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public MessageResponse register(@RequestBody @Validated RegisterRequest registerRequest) {
-        return authService.register( registerRequest.getUsername(), registerRequest.getUserMail(), registerRequest.getPassword() );
+        return authService.register( registerRequest.getUsername(), registerRequest.getUserMail(), registerRequest.getPassword(), registerRequest.getCaptchaToken() );
     }
 
     @GetMapping("/me")

@@ -5,6 +5,7 @@ services:
         - "8080:8080"
       environment:
         - JWT_SECRET=${JWT_SECRET}
+        - TURNSTILE_SECRET=${TURNSTILE_SECRET}
         - SPRING_DATA_REDIS_HOST=redis
         - SPRING_MONGODB_URI=mongodb://mongo:27017/spboot
         - SPRING_RABBITMQ_HOST=rabbitmq

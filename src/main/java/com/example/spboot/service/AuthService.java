@@ -45,6 +45,7 @@ public class AuthService {
     private final AppUserRepository userRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ProxyManager<byte[]> proxyManager;
+    private final TurnstileService turnstileService;
     
     @Value("${ratelimit.registerMail.capacity}")
     private int mailCapacity;
@@ -60,7 +61,8 @@ public class AuthService {
                         PasswordEncoder passwordEncoder,
                         AppUserRepository userRepository,
                         RabbitTemplate rabbitTemplate,
-                        ProxyManager<byte[]> proxyManager) {
+                        ProxyManager<byte[]> proxyManager,
+                        TurnstileService turnstileService) {
 
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -70,6 +72,7 @@ public class AuthService {
         this.userRepository = userRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.proxyManager = proxyManager;
+        this.turnstileService = turnstileService;
     }
 
 
@@ -120,8 +123,9 @@ public class AuthService {
     }
 
 
-    public MessageResponse register(String username,String userMail, String password) {
+    public MessageResponse register(String username,String userMail, String password, String captchaToken) {
         if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
+            turnstileService.verify(captchaToken);
 
             String key = "ratelimit:registerMail:" +userMail.toLowerCase(Locale.ROOT);
             byte[] keyBytes = key.getBytes();
