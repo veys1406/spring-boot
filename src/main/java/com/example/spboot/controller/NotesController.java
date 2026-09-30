@@ -3,7 +3,9 @@ package com.example.spboot.controller;
 import com.example.spboot.dto.NotesRequest;
 import com.example.spboot.dto.NotesResponse;
 import com.example.spboot.service.NotesService;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,19 +31,19 @@ public class NotesController {
     }
 
     @PostMapping("/notes")// Content typei application/json
-    public void saveNote(@RequestBody NotesRequest noteRequest,// JSON dan geliyor
+    public void saveNote(@RequestBody @Validated NotesRequest notesRequest,// JSON dan geliyor
                         @RequestParam String imza, // URLden geliyor
                         @AuthenticationPrincipal String username){
-        notesService.createNote(noteRequest.getIcerik(),imza,username);
+        notesService.createNote(notesRequest.getIcerik(),imza,username);
     }
 
     @PostMapping("/notes/upload")// Content typei multipart/form-data
-    public void saveNoteWithImage(@RequestParam String icerik,
+    public void saveNoteWithImage(@ModelAttribute @Validated NotesRequest notesRequest,
                                 @RequestParam String imza,
                                 @RequestParam MultipartFile image,
                                 @AuthenticationPrincipal String username) throws IOException{
         
-        notesService.createNoteWithImage(icerik, imza, image.getBytes(), username);
+        notesService.createNoteWithImage(notesRequest.getIcerik(), imza, image.getBytes(), username);
 
     }
 

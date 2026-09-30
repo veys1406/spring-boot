@@ -4,10 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.core.annotation.Order;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,6 +20,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class GlobalExceptionHandler {// mantikli olan yontem?? 400 tane exception???
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleInternal(Exception exception)throws Exception{
+        if (exception instanceof ErrorResponse errorResponse) {
+            return errorResponse.getBody();
+        }
+        if (exception instanceof AuthenticationException || exception instanceof AccessDeniedException) {
+            throw exception;
+        }
+        log.error("Unexpected error", exception);
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred!");
+        problem.setProperty("code", ErrorCode.INTERNAL_ERROR.name());
+        return problem;
+    }
 
     @ExceptionHandler(CustomException.class)
     public ProblemDetail handleCustom(CustomException exception){
