@@ -5,6 +5,7 @@ import com.example.spboot.dto.AppUserResponse;
 import com.example.spboot.dto.LoginRequest;
 import com.example.spboot.dto.LoginResponse;
 import com.example.spboot.dto.MessageResponse;
+import com.example.spboot.dto.PasswordChangeRequest;
 import com.example.spboot.dto.RegisterRequest;
 
 import jakarta.servlet.http.Cookie;
@@ -132,6 +133,7 @@ public class AuthController {
     
     @PostMapping("/logout-all")
     public MessageResponse logoutAll(Authentication authentication, HttpServletResponse response){
+        MessageResponse messageResponse =authService.logoutAll(authentication);
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
                 .path("/")
@@ -148,6 +150,28 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         
-        return authService.logoutAll(authentication);
+        return messageResponse;
+    }
+
+    @PostMapping("/password-change")
+    public MessageResponse passwordChange(Authentication authentication, @RequestBody @Validated PasswordChangeRequest passwordChangeRequest, HttpServletResponse response){
+        MessageResponse messageResponse = authService.passwordChange(authentication, passwordChangeRequest.getCurrentPassword(),passwordChangeRequest.getNewPassword(),passwordChangeRequest.getNewPasswordAgain());
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        
+        return messageResponse;
     }
 }

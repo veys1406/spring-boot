@@ -192,4 +192,22 @@ public class AuthService {
         
         return new MessageResponse("Tüm cihazlardan çıkış yapıldı");
     }
+
+    public MessageResponse passwordChange(Authentication authentication, String currentPassword, String newPassword, String newPasswordAgain){
+        AppUser user = userRepository.findByUsername(authentication.getName()).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND,"User not found",ErrorCode.NOT_FOUND));
+        boolean isMatches = passwordEncoder.matches(currentPassword, user.getPassword());
+        if(!isMatches){
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Password is invalid!", ErrorCode.INVALID_PASSWORD);
+        }
+        if(currentPassword.equals(newPassword)){
+            throw new CustomException(HttpStatus.BAD_REQUEST, "New password cant be same with current one!", ErrorCode.SAME_PASSWORD);
+        }
+        if(!newPassword.equals(newPasswordAgain)){
+            throw new CustomException(HttpStatus.BAD_REQUEST, "Passwords are not matching!", ErrorCode.PASSWORD_MISMATCH);
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        logoutAll(authentication);
+        return new MessageResponse("Sifre degistirildi. Tum cihazlardan cikis yapildi");
+    }
 }
