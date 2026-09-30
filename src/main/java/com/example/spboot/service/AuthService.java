@@ -124,9 +124,10 @@ public class AuthService {
 
 
     public MessageResponse register(String username,String userMail, String password, String captchaToken) {
-        if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
-            turnstileService.verify(captchaToken);
 
+        turnstileService.verify(captchaToken);
+
+        if(!userRepository.findByUsername(username).isPresent()){// isPresent ici dolu mu bos mu diye bakar
             String key = "ratelimit:registerMail:" +userMail.toLowerCase(Locale.ROOT);
             byte[] keyBytes = key.getBytes();
             BucketConfiguration config = RateLimitConfig.configOf(mailCapacity, mailFillRate, mailWindow);
